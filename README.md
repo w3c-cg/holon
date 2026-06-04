@@ -37,6 +37,13 @@ In practical terms, the architecture grounds these ideas in the W3C RDF 1.2 tech
 
 The Holon Community Group was established to provide a neutral, open forum within W3C for developing and standardising the vocabulary, ontology patterns, and architectural conventions that make holonic graph systems interoperable. The group's scope includes a core Holon Ontology (expressed in OWL/RDFS), canonical SHACL shape libraries for boundary and composition constraints, a DataBook specification for self-describing holonic knowledge artefacts, and best-practice guidance for applying holonic patterns to real-world knowledge graph deployments. The CG welcomes contributions from ontologists, knowledge graph practitioners, AI researchers, and semantic web engineers, and aims to produce community group reports suitable for eventual transition to W3C Working Group status.
 
+## Documentation
+
+There are several documents that help to describe and specify the various aspects of the Holonic Architecture.
+
+* [Frequently Askedd Questions](documentation/FAQ.md)
+* _More to come_
+
 ---
 
 > **⚠️ Work in Progress**
