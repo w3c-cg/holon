@@ -41,7 +41,7 @@ The Holon Community Group was established to provide a neutral, open forum withi
 
 There are several documents that help to describe and specify the various aspects of the Holonic Architecture.
 
-* [Frequently Askedd Questions](documentation/FAQ.databook.md)
+* [Frequently Askedd Questions](documentation/faq.databook.md)
 * _More to come_
 
 ---
