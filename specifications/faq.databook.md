@@ -32,6 +32,8 @@ process:
     role: orchestrator
 ---
 
+---
+
 # Holon Community Group — Frequently Asked Questions
 
 This document provides introductory answers to common questions about the Holon Graph Architecture and the W3C Holon Community Group. It is organised to move from foundational concepts toward more technical and practical concerns. Answers will be expanded and supplemented with links to formal specifications as those documents mature.
