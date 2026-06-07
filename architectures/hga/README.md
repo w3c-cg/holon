@@ -80,7 +80,7 @@ to `http://w3id.org/holon/{sub}/`.
 | A.1 | `hga-pass-a-ontology-header.databook.md` | `http://w3id.org/holon/spec/ontology-header` | core | [↗](https://drive.google.com/file/d/1wC7Xang1CZ-hKbJiiey8qTmgfVbNBKtg/view) |
 | A.2 | `hga-pass-a-skos-taxonomies.databook.md` | `http://w3id.org/holon/spec/skos-taxonomies` | core | [↗](https://drive.google.com/file/d/1SZyZ16zr9Ie8xPnD0PtgnaUX-WOQFuIa/view) |
 
-### [A.1 — Ontology Header](https://drive.google.com/file/d/1wC7Xang1CZ-hKbJiiey8qTmgfVbNBKtg/view)
+### [A.1 — Ontology Header]hga-pass-a-ontology-header.databook.md)
 **Path:** `hga/hga-pass-a-ontology-header.databook.md`  
 **Namespace:** `holon:` = `http://w3id.org/holon/`
 
@@ -91,7 +91,7 @@ primary; OWL 2 RL axioms are non-normative annotations. Shapes are
 self-sufficient without OWL reasoning. Every SHACL rule carries a
 companion SPARQL UPDATE fallback.
 
-### [A.2 — SKOS Taxonomies](https://drive.google.com/file/d/1SZyZ16zr9Ie8xPnD0PtgnaUX-WOQFuIa/view)
+### [A.2 — SKOS Taxonomies](hga-pass-a-skos-taxonomies.databook.md)
 **Path:** `hga/hga-pass-a-skos-taxonomies.databook.md`  
 **Namespace:** `holon:` = `http://w3id.org/holon/`
 
@@ -110,7 +110,7 @@ later passes reference via `skos:inScheme`.
 | B.1 | `hga-pass-b-core-structure.databook.md` | `http://w3id.org/holon/spec/core-structure` | core | [↗](https://drive.google.com/file/d/1ur0Tn10Z32fsKE0-WxQGeKlH1Rw17bM6/view) |
 | B.2 | `hga-pass-b-portals.databook.md` | `http://w3id.org/holon/spec/portals` | core | [↗](https://drive.google.com/file/d/1X9cEr8vxOTXpAwhIrtbpqTaB7fr9cBPw/view) |
 
-### [B.1 — Core Structure](https://drive.google.com/file/d/1ur0Tn10Z32fsKE0-WxQGeKlH1Rw17bM6/view)
+### [B.1 — Core Structure](hga-pass-a-skos-taxonomies.databook.md)
 **Path:** `hga/hga-pass-b-core-structure.databook.md`  
 **Namespace:** `holon:` = `http://w3id.org/holon/`
 
@@ -121,7 +121,7 @@ and the `holon:blanket` / `holon:participationRecord` extensions for
 agent participation (added by Pass E §1 amendment). The structural
 foundation of the holarchy — every other pass depends on this one.
 
-### [B.2 — Portals](https://drive.google.com/file/d/1X9cEr8vxOTXpAwhIrtbpqTaB7fr9cBPw/view)
+### [B.2 — Portals](hga-pass-b-portals.databook.md)
 **Path:** `hga/hga-pass-b-portals.databook.md`  
 **Namespace:** `holon:` = `http://w3id.org/holon/`
 
@@ -141,7 +141,7 @@ validation and SPARQL traversal queries.
 | C.1 | `hga-pass-c-events.databook.md` | `http://w3id.org/holon/spec/events` | core | [↗](https://drive.google.com/file/d/11tPZVdQZ_MG_B2fjnU8IWjMJEw3HhFmG/view) |
 | C.2 | `hga-pass-c-provenance.databook.md` | `http://w3id.org/holon/spec/provenance` | core | [↗](https://drive.google.com/file/d/1SLRh-6qQhghEKr-oglSPDxCHCdgTfekz/view) |
 
-### [C.1 — Events](https://drive.google.com/file/d/11tPZVdQZ_MG_B2fjnU8IWjMJEw3HhFmG/view)
+### [C.1 — Events]hga-pass-b-portals.databook.md)
 **Path:** `hga/hga-pass-c-events.databook.md`  
 **Namespace:** `hev:` = `http://w3id.org/holon/event/`
 
@@ -152,7 +152,7 @@ the event graph records only state changes — missed actions leave no
 triple. Largest DataBook in the spec (53 KB); covers event typing,
 annotation syntax, SHACL shapes, and full SPARQL query suite.
 
-### [C.2 — Provenance](https://drive.google.com/file/d/1SLRh-6qQhghEKr-oglSPDxCHCdgTfekz/view)
+### [C.2 — Provenance](hga-pass-c-provenance.databook.md)
 **Path:** `hga/hga-pass-c-provenance.databook.md`  
 **Namespace:** `hprov:` = `http://w3id.org/holon/provenance/`
 
@@ -173,7 +173,7 @@ to `hprov:IngestionActivity` instances.
 | D.2 | `hga-pass-d-policy.databook.md` | `http://w3id.org/holon/spec/policy` | extended | [↗](https://drive.google.com/file/d/1alEr3V-Ou9tSFdeHDkMNBxb4rPFb4Vot/view) |
 | D.3 | `hga-pass-d-vc.databook.md` | `http://w3id.org/holon/spec/verifiable-credentials` | extended | [↗](https://drive.google.com/file/d/1oqoOFkmsbNlQ04Qwr6jvzouUJ-kXLSqf/view) |
 
-### [D.1 — Bayesian / Active Inference](https://drive.google.com/file/d/1sbB_y08j4KcYTO7OztJ8PMENsx-ooPXV/view)
+### [D.1 — Bayesian / Active Inference](hga-pass-d-bayesian.databook.md)
 **Path:** `hga/hga-pass-d-bayesian.databook.md`  
 **Namespace:** `hbayes:` = `http://w3id.org/holon/bayesian/`
 
@@ -184,7 +184,7 @@ within holonic agents — the mathematical layer grounding `hmk:`
 Markov blanket dynamics. Conformance class `hspec:HGABayesian` is a
 prerequisite for Pass E.
 
-### [D.2 — Policy (ODRL)](https://drive.google.com/file/d/1alEr3V-Ou9tSFdeHDkMNBxb4rPFb4Vot/view)
+### [D.2 — Policy (ODRL)]hga-pass-d-policy.databook.md)
 **Path:** `hga/hga-pass-d-policy.databook.md`  
 **Namespace:** `hpol:` = `http://w3id.org/holon/policy/`
 
@@ -194,7 +194,7 @@ Integrates with `holon:PortalLock` and `holon:Boundary` to provide
 formal access control semantics for holon traversal. At-risk pending
 ODRL 3.0 stabilisation.
 
-### [D.3 — Verifiable Credentials](https://drive.google.com/file/d/1oqoOFkmsbNlQ04Qwr6jvzouUJ-kXLSqf/view)
+### [D.3 — Verifiable Credentials](hga-pass-d-vc.databook.md)
 **Path:** `hga/hga-pass-d-vc.databook.md`  
 **Namespace:** `hvc:` = `http://w3id.org/holon/vc/`
 
@@ -212,7 +212,7 @@ a stub — full implementation pending W3C VC 2.0 stabilisation.
 | E.1 | `hga-pass-e-markov-blanket_databook.md` | `http://w3id.org/holon/spec/markov-blanket` | 0.2.0 | markov | [↗](https://drive.google.com/file/d/1OKHFShLSU7xICquo9UwfyuKqHO7K11me/view) |
 | E.2 | `hga-pass-e-projection.databook.md` | `http://w3id.org/holon/spec/projection` | 0.1.0 | projection | [↗](https://drive.google.com/file/d/1Ka9zAvV3eqPdefISlHekK9HRZUjPj013/view) |
 
-### [E.1 — Markov Blanket (v0.2.0)](https://drive.google.com/file/d/1OKHFShLSU7xICquo9UwfyuKqHO7K11me/view)
+### [E.1 — Markov Blanket (v0.2.0)](hga-pass-e-markov-blanket_databook.md)
 **Path:** `hga/hga-pass-e-markov-blanket_databook.md`  
 **Namespace:** `hmk:` = `http://w3id.org/holon/markov/`
 
@@ -229,7 +229,7 @@ subclasses and `hmk:signalPolarity`. Defines `hmk:ParticipationRecord`,
 `hproj:Projection` and `hmk:Utterance` into the blanket surface
 architecture. Updated 2026-06-07.
 
-### [E.2 — Projection (v0.1.0)](https://drive.google.com/file/d/1Ka9zAvV3eqPdefISlHekK9HRZUjPj013/view)
+### [E.2 — Projection (v0.1.0)](hga-pass-e-projection.databook.md)
 **Path:** `hga/hga-pass-e-projection.databook.md`  
 **Namespace:** `hproj:` = `http://w3id.org/holon/projection/`
 
