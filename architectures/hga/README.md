@@ -184,7 +184,7 @@ within holonic agents — the mathematical layer grounding `hmk:`
 Markov blanket dynamics. Conformance class `hspec:HGABayesian` is a
 prerequisite for Pass E.
 
-### [D.2 — Policy (ODRL)]hga-pass-d-policy.databook.md)
+### [D.2 — Policy (ODRL)](hga-pass-d-policy.databook.md)
 **Path:** `hga/hga-pass-d-policy.databook.md`  
 **Namespace:** `hpol:` = `http://w3id.org/holon/policy/`
 
