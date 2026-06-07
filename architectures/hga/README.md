@@ -141,7 +141,7 @@ validation and SPARQL traversal queries.
 | C.1 | `hga-pass-c-events.databook.md` | `http://w3id.org/holon/spec/events` | core | [↗](https://drive.google.com/file/d/11tPZVdQZ_MG_B2fjnU8IWjMJEw3HhFmG/view) |
 | C.2 | `hga-pass-c-provenance.databook.md` | `http://w3id.org/holon/spec/provenance` | core | [↗](https://drive.google.com/file/d/1SLRh-6qQhghEKr-oglSPDxCHCdgTfekz/view) |
 
-### [C.1 — Events]hga-pass-b-portals.databook.md)
+### [C.1 — Events](hga-pass-c-events.databook.md)
 **Path:** `hga/hga-pass-c-events.databook.md`  
 **Namespace:** `hev:` = `http://w3id.org/holon/event/`
 
