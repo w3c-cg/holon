@@ -51,7 +51,7 @@ depend on earlier ones.
 | 0.1 | `hga-pass0-manifest.databook.md` | `http://w3id.org/holon/spec/manifest` | core | [↗](https://drive.google.com/file/d/1rHxOZfFksq_RTAt8j2p7kv6UcK9JLfiT/view) |
 | 0.2 | `hga-pass0-namespace-registry.databook.md` | `http://w3id.org/holon/spec/namespace-registry` | core | [↗](https://drive.google.com/file/d/1VibLQzVMgi9Iyuw3HEzzBu5BgNurXeuE/view) |
 
-### [0.1 — Manifest](https://drive.google.com/file/d/1rHxOZfFksq_RTAt8j2p7kv6UcK9JLfiT/view)
+### [0.1 — Manifest](hga/hga-pass0-namespace-registry.databook.md)
 **Path:** `hga/hga-pass0-manifest.databook.md`  
 **Namespace:** `hspec:` = `http://w3id.org/holon/spec/`
 
@@ -61,7 +61,7 @@ The canonical entry point for automated processors and specification
 navigation. Declares the `hspec:` vocabulary for conformance classes,
 at-risk markers, and DataBook metadata.
 
-### [0.2 — Namespace Registry](https://drive.google.com/file/d/1VibLQzVMgi9Iyuw3HEzzBu5BgNurXeuE/view)
+### [0.2 — Namespace Registry](hga-pass0-namespace-registry.databook.md)
 **Path:** `hga/hga-pass0-namespace-registry.databook.md`  
 **Namespace:** `hspec:` = `http://w3id.org/holon/spec/`
 
