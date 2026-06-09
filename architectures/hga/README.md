@@ -50,7 +50,7 @@ to showcase a typical use case for a holonic system.
 * [Holon Graph Architecture Primer](hga-primer.databook.md)
 * [HGA Vocabulary Summary](hga-vocabulary-summary_databook.md)
 
---
+---
 
 ## DataBook Inventory
 
