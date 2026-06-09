@@ -41,6 +41,16 @@ process:
 
 ---
 
+### HGA Primer
+
+This provides an introduction to the Holon Graph Architecture (HGA), walking the reader through an example showing a medical rounds
+scenario as it illustrates various components of the HGA. This assumes knowledge of RDF, SHACL, and SPARQL, and is intended primarily
+to showcase a typical use case for a holonic system. 
+
+[Holon Graph Architecture Primer](hga-primer.databook.md).
+
+--
+
 ## DataBook Inventory
 
 All 15 normative DataBook artefacts are listed below in pass order. Files are
