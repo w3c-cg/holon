@@ -2,9 +2,9 @@
 id: http://w3id.org/holon/spec/markov-blanket
 title: "HGA Markov Blanket — Agent State Partition, Projection, and Signal Routing"
 type: spec-section
-version: 0.2.0
+version: 0.3.0
 created: 2026-06-06
-updated: 2026-06-06
+updated: 2026-06-09
 author:
   - name: Kurt Cagle
     iri: https://holongraph.com/people/kurt-cagle
@@ -287,6 +287,34 @@ Two subclasses formalise the distinction:
 
 A new property `hmk:signalPolarity` links a `PropagationSignal` to one of
 two named individuals: `hmk:DistressSignal` or `hmk:ResolutionSignal`.
+
+### 1.11 Sensor-Only Blankets and Camera Agents
+
+The canonical four-surface partition (§1.3) assumes a full agent: internal
+model, sensory surface, active surface, and external environment. This is
+correct for `AgentHolon` participants engaged in active inference.
+
+However, the `hmedia:` vocabulary (Pass F) introduces `hmedia:CameraAgent`
+— a passive sensor that extends `hmk:SensoryState`. A camera perceives the
+holon's state and produces observations (`hev:ObservationEvent`) whose
+output is a media asset. It does not deliberate, plan, or emit active state
+projections. It is a *perceiver*, not an *actor*.
+
+To accommodate this pattern without weakening the full-agent invariant, a
+`hmk:MarkovBlanket` MAY be declared as **sensor-only** by asserting
+`hmedia:sensorOnly true`. A sensor-only blanket:
+
+- MUST have at least one `hmk:SensoryState` (enforced `sh:Violation`)
+- is NOT REQUIRED to have `hmk:ActiveState` or `hmk:InternalState` (relaxed to `sh:Warning`)
+- NEED NOT shield an `AgentHolon` — it may instead reference an `hmedia:CameraAgent` via `hmk:shields` (relaxed to `sh:Warning`)
+
+The `hmedia:sensorOnly` property is defined in the `hmedia:` namespace (Pass F)
+and imported here only as a constraint guard. Processors that do not load
+Pass F treat the property as unknown and apply the full four-surface rule.
+
+This maintains backward compatibility: existing blankets without
+`hmedia:sensorOnly` are unaffected. The relaxation fires only when the
+property is explicitly declared.
 
 ### 1.8 Required Amendments to Prior Passes
 
@@ -781,9 +809,9 @@ GRAPH <http://w3id.org/holon/markov/#shapes> {
   hmk:MarkovBlanketShape a sh:NodeShape ;
       sh:targetClass hmk:MarkovBlanket ;
       sh:name   "Markov Blanket"@en ;
-      sh:intent "Requires label, at least one SensoryState and one ActiveState, and exactly one shields link to an AgentHolon."@en ;
+      sh:intent "Requires label and at least one SensoryState. ActiveState and AgentHolon link are required unless hmedia:sensorOnly true is asserted (Pass F sensor-only pattern)."@en ;
       sh:agentInstruction
-          "A valid MarkovBlanket must have both surfaces declared and shield exactly one AgentHolon. Without sensory states it cannot receive observations; without active states it cannot emit projections or epistemic actions."@en ;
+          "A valid MarkovBlanket must have sensory states declared. For full agents, active states and an AgentHolon shield are also required. If hmedia:sensorOnly true is present (camera/sensor pattern from Pass F), active states and the AgentHolon shield are optional and violations are downgraded to warnings."@en ;
       sh:nodeKind sh:IRI ;
 
       sh:property [ sh:path rdfs:label ; sh:minCount 1 ; sh:severity sh:Violation ;
@@ -791,17 +819,39 @@ GRAPH <http://w3id.org/holon/markov/#shapes> {
       sh:property [ sh:path hmk:hasSensoryStates ; sh:minCount 1 ; sh:class hmk:SensoryState ;
           sh:nodeKind sh:IRI ; sh:severity sh:Violation ;
           sh:message "MarkovBlanket MUST declare at least one SensoryState."@en ] ;
-      sh:property [ sh:path hmk:hasActiveStates ; sh:minCount 1 ; sh:class hmk:ActiveState ;
-          sh:nodeKind sh:IRI ; sh:severity sh:Violation ;
-          sh:message "MarkovBlanket MUST declare at least one ActiveState."@en ] ;
-      sh:property [ sh:path hmk:shields ; sh:minCount 1 ; sh:maxCount 1 ;
-          sh:class holon:AgentHolon ; sh:nodeKind sh:IRI ; sh:severity sh:Violation ;
-          sh:message "MarkovBlanket MUST shield exactly one AgentHolon."@en ] ;
       sh:property [ sh:path hmk:propagationThreshold ; sh:maxCount 1 ;
           sh:datatype xsd:decimal ; sh:minExclusive 0.0 ; sh:severity sh:Warning ;
           sh:message "propagationThreshold MUST be > 0 if declared."@en ] ;
       sh:property [ sh:path hmk:participatesIn ; sh:nodeKind sh:IRI ; sh:severity sh:Warning ;
-          sh:message "participatesIn SHOULD reference a valid Holon IRI."@en ] .
+          sh:message "participatesIn SHOULD reference a valid Holon IRI."@en ] ;
+
+      # Active states — required for full agents, warning-only for sensor-only blankets
+      sh:sparql [
+          a sh:SPARQLConstraint ;
+          sh:severity sh:Violation ;
+          sh:message "MarkovBlanket MUST declare at least one ActiveState unless hmedia:sensorOnly true."@en ;
+          sh:prefixes hmk: ;
+          sh:select """
+              PREFIX hmedia: <http://w3id.org/holon/media/>
+              SELECT $this WHERE {
+                  FILTER NOT EXISTS { $this hmk:hasActiveStates [] }
+                  FILTER NOT EXISTS { $this hmedia:sensorOnly true }
+              }
+          """ ] ;
+
+      # AgentHolon shield — required for full agents, warning-only for sensor-only blankets
+      sh:sparql [
+          a sh:SPARQLConstraint ;
+          sh:severity sh:Warning ;
+          sh:message "Full-agent MarkovBlanket SHOULD shield exactly one AgentHolon. Omit only if hmedia:sensorOnly true."@en ;
+          sh:prefixes hmk: ;
+          sh:select """
+              PREFIX hmedia: <http://w3id.org/holon/media/>
+              SELECT $this WHERE {
+                  FILTER NOT EXISTS { $this hmk:shields [] }
+                  FILTER NOT EXISTS { $this hmedia:sensorOnly true }
+              }
+          """ ] .
 
   # ── SensoryStateShape ────────────────────────────────────────────────────────
 
@@ -1338,6 +1388,18 @@ INSERT { GRAPH <urn:hmk:violations> {
     ?u hmk:violates "Utterance-MissingActiveState" . }}
 WHERE { ?u a hmk:Utterance .
         FILTER NOT EXISTS { ?u hmk:generatedFromActiveState [] } } ;
+
+# ── F9: Flag full-agent blankets missing ActiveState ──────────────────────
+# (sensor-only blankets exempt via hmedia:sensorOnly true)
+INSERT { GRAPH <urn:hmk:violations> {
+    ?b hmk:violates "Blanket-MissingActiveState" . }}
+WHERE {
+    ?b a hmk:MarkovBlanket .
+    FILTER NOT EXISTS { ?b hmk:hasActiveStates [] }
+    FILTER NOT EXISTS {
+        ?b <http://w3id.org/holon/media/sensorOnly> true
+    }
+} ;
 
 # ── F6: Flag CoregulationRecords with fewer than two distinct blankets ────
 INSERT { GRAPH <urn:hmk:violations> {

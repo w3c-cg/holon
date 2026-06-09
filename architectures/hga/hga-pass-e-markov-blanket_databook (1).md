@@ -1,0 +1,1 @@
+# upload via bash — reading file

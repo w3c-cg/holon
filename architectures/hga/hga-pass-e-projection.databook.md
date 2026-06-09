@@ -2,8 +2,9 @@
 id: http://w3id.org/holon/spec/projection
 title: "HGA Projection Layer — Vocabulary and Shapes"
 type: spec-section
-version: 0.1.0
+version: 0.1.1
 created: 2026-06-04
+updated: 2026-06-09
 author:
   - name: Kurt Cagle
     iri: https://holongraph.com/people/kurt-cagle
@@ -22,6 +23,7 @@ subject:
   - cartographer
   - depiction
   - content format
+  - camera agent
   - SHACL 1.2
   - RDF 1.2
 description: >
@@ -34,10 +36,12 @@ description: >
   cartographer), DepictionProjection (stage 9, cartographer output),
   OutputProduct (persistent deliverable), ProjectionActivity,
   CartographerActivity, and PromptBlock. Introduces the HGAProjection
-  conformance class extending HGAExtended.
+  conformance class extending HGAExtended. Amendment 0.1.1: adds
+  hmedia:cameraRef bridge property and §1.7 camera preset mapping note
+  (Pass F cross-reference).
 spec:
   document-iri: http://w3id.org/holon/spec/
-  section-number: "Pass E — §1"
+  section-number: "Pass E — §2"
   status: "Editor's Draft"
   normative: true
   conformance-class:
@@ -55,7 +59,7 @@ process:
   transformer: "claude-sonnet-4-6"
   transformer_type: llm
   transformer_iri: https://api.anthropic.com/v1/models/claude-sonnet-4-6
-  timestamp: 2026-06-04T00:00:00Z
+  timestamp: 2026-06-09T00:00:00Z
   agent:
     name: Chloe Shannon
     iri: https://holongraph.com/people/chloe-shannon
@@ -181,6 +185,36 @@ hspec:HGAProjection a hspec:ConformanceClass ;
   (h) Static DataBook fallback for vocabulary dereferencing at hproj: IRIs."""@en .
 ```
 
+### 1.7 Camera Agents and Rendering Hints (Pass F Bridge)
+
+The `hmedia:` vocabulary (Pass F) introduces `hmedia:CameraAgent` — a
+specialised `hmk:SensoryState` that characterises the point of view and
+sensor type for a projection. When an `hmedia:CameraAgent` is referenced
+via `hmedia:cameraRef` on a `hproj:NowGraph` or `hproj:DepictionProjection`,
+it provides rendering hints to the AI Cartographer:
+
+- `hmedia:sensorType` determines the output modality (Visual, Audio,
+  Geometric, Cartographic, Textual)
+- `hmedia:shotType` and `hmedia:perspective` parameterise the viewpoint
+- `hmedia:focalLength`, `hmedia:fieldOfView`, and `hmedia:depthOfField`
+  provide cinematic parameters
+
+The `hproj:RenderingModeScheme` concepts map to default camera presets
+declared as named individuals in the `hmedia:` namespace:
+
+| Rendering mode | Default camera preset | Primary sensor type |
+|---|---|---|
+| `hproj:CinematicMode` | `hmedia:CinematicDefault` | `hmedia:VisualSensor` |
+| `hproj:ImmersiveMode` | `hmedia:ImmersiveDefault` | `hmedia:VisualSensor` |
+| `hproj:ActiveInferenceMode` | `hmedia:ActiveInferenceDefault` | `hmedia:TextualSensor` |
+| `hproj:ExplodedViewMode` | `hmedia:CartographicDefault` | `hmedia:CartographicSensor` |
+
+Multiple cameras MAY reference the same `NowGraph` simultaneously,
+producing concurrent projections in different modalities. The camera
+reference is advisory — implementations that do not load Pass F MAY ignore
+`hmedia:cameraRef` without error. The shapes in this DataBook include it in
+`sh:ignoredProperties` for this reason.
+
 ---
 
 ## 2. SKOS Concept Schemes
@@ -201,7 +235,7 @@ hspec:HGAProjection a hspec:ConformanceClass ;
 GRAPH <http://w3id.org/holon/projection/#skos-types> {
 
   hproj:ProjectionTypeScheme a skos:ConceptScheme ;
-      rdfs:label     "HGA Projection Type"@en ;
+      rdfs:label    "HGA Projection Type"@en ;
       dcterms:description
           "Classifies the types of projection artefacts produced by the HGA pipeline. Used as the range of hproj:projectionType."@en ;
       sh:agentInstruction
@@ -244,7 +278,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-types> {
       rdfs:label         "Event Stream Projection"@en ;
       skos:notation      "EVENT-STREAM" ;
       skos:definition
-          "A time-ordered sequence of projection deltas emitted over a WebSocket connection. Each element in the stream carries a transmission sequence number and a base projection reference. Used in eager/streaming deployment mode."@en .
+          "A time-ordered sequence of projection deltas emitted over a WebSocket connection. Each element carries a transmission sequence number and a base projection reference. Used in eager/streaming deployment mode."@en .
 
   hproj:DeltaProjection a skos:Concept ;
       skos:inScheme      hproj:ProjectionTypeScheme ;
@@ -280,7 +314,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-types> {
 GRAPH <http://w3id.org/holon/projection/#skos-persistence> {
 
   hproj:PersistencePolicyScheme a skos:ConceptScheme ;
-      rdfs:label     "HGA Projection Persistence Policy"@en ;
+      rdfs:label    "HGA Projection Persistence Policy"@en ;
       dcterms:description
           "Governs whether a projection is consumed and discarded (ephemeral) or registered in the holon registry as a DataHolon (persistent). Used as the range of hproj:persistencePolicy."@en ;
       skos:hasTopConcept
@@ -327,9 +361,9 @@ The four client modes defined in the SCE architecture.
 GRAPH <http://w3id.org/holon/projection/#skos-modes> {
 
   hproj:RenderingModeScheme a skos:ConceptScheme ;
-      rdfs:label     "HGA Rendering Mode"@en ;
+      rdfs:label    "HGA Rendering Mode"@en ;
       dcterms:description
-          "The four rendering modes in which a client may consume a DepictionProjection. The active mode is a client-declared property; the same holon may simultaneously serve clients in different modes from the same event stream."@en ;
+          "The four rendering modes in which a client may consume a DepictionProjection. The active mode is a client-declared property; the same holon may simultaneously serve clients in different modes from the same event stream. Each mode maps to a default hmedia:CameraAgent preset declared in Pass F."@en ;
       skos:hasTopConcept
           hproj:CinematicMode ,
           hproj:ImmersiveMode ,
@@ -377,10 +411,6 @@ GRAPH <http://w3id.org/holon/projection/#skos-modes> {
 
 ### 2.4 Content Format Scheme
 
-Known content formats for projection payloads. The envelope declares which
-format the content uses; the content itself is not constrained by `hproj:`
-shapes.
-
 <!-- databook:id: content-format-scheme -->
 <!-- databook:graph: http://w3id.org/holon/projection/#skos-formats -->
 <!-- mode=normative norm=true conformance=projection rfc2119=MUST -->
@@ -394,7 +424,7 @@ shapes.
 GRAPH <http://w3id.org/holon/projection/#skos-formats> {
 
   hproj:ContentFormatScheme a skos:ConceptScheme ;
-      rdfs:label     "HGA Projection Content Format"@en ;
+      rdfs:label    "HGA Projection Content Format"@en ;
       dcterms:description
           "Controlled vocabulary for the content format of a projection payload. Each concept identifies the format of the content carried in hproj:contentGraph, hproj:contentURI, or hproj:contentLiteral. Concepts carry skos:notation values aligned with IANA media type strings where applicable."@en ;
       skos:hasTopConcept
@@ -414,88 +444,88 @@ GRAPH <http://w3id.org/holon/projection/#skos-formats> {
           hproj:SPARQLResultsJSONFormat .
 
   hproj:DataBookFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "DataBook"@en ;
-      skos:notation      "text/markdown" ;
-      skos:definition    "The projection payload is a DataBook — a Markdown document carrying YAML frontmatter and typed fenced blocks. The canonical HGA self-describing artefact format."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "DataBook"@en ;
+      skos:notation  "text/markdown" ;
+      skos:definition "The projection payload is a DataBook — a Markdown document carrying YAML frontmatter and typed fenced blocks. The canonical HGA self-describing artefact format."@en .
 
   hproj:TurtleFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "Turtle 1.2"@en ;
-      skos:notation      "text/turtle" ;
-      skos:definition    "The payload is an RDF named graph serialised in Turtle 1.2 syntax. Standard for Now Graph scene blocks."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "Turtle 1.2"@en ;
+      skos:notation  "text/turtle" ;
+      skos:definition "The payload is an RDF named graph serialised in Turtle 1.2 syntax. Standard for Now Graph scene blocks."@en .
 
   hproj:JSONLDFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "JSON-LD"@en ;
-      skos:notation      "application/ld+json" ;
-      skos:definition    "The payload is an RDF graph in JSON-LD 1.1 compact form using the HGA context."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "JSON-LD"@en ;
+      skos:notation  "application/ld+json" ;
+      skos:definition "The payload is an RDF graph in JSON-LD 1.1 compact form using the HGA context."@en .
 
   hproj:HTMLFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "HTML"@en ;
-      skos:notation      "text/html" ;
-      skos:definition    "The payload is an HTML document. Used for browser-rendered depictions and published reports."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "HTML"@en ;
+      skos:notation  "text/html" ;
+      skos:definition "The payload is an HTML document. Used for browser-rendered depictions and published reports."@en .
 
   hproj:TextFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "Plain Text"@en ;
-      skos:notation      "text/plain" ;
-      skos:definition    "The payload is plain text or conversational prose generated by the AI Cartographer. The lightest depiction; always available regardless of client capability."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "Plain Text"@en ;
+      skos:notation  "text/plain" ;
+      skos:definition "The payload is plain text or conversational prose generated by the AI Cartographer. The lightest depiction; always available regardless of client capability."@en .
 
   hproj:SVGFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "SVG"@en ;
-      skos:notation      "image/svg+xml" ;
-      skos:definition    "The payload is a Scalable Vector Graphics document. Used for structural diagrams, schematic maps, and graph topology depictions."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "SVG"@en ;
+      skos:notation  "image/svg+xml" ;
+      skos:definition "The payload is a Scalable Vector Graphics document. Used for structural diagrams, schematic maps, and graph topology depictions."@en .
 
   hproj:MermaidFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "Mermaid"@en ;
-      skos:notation      "text/x-mermaid" ;
-      skos:definition    "The payload is a Mermaid diagram specification. Rendered client-side by the Mermaid library. Used for flowcharts, sequence diagrams, and entity-relationship diagrams."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "Mermaid"@en ;
+      skos:notation  "text/x-mermaid" ;
+      skos:definition "The payload is a Mermaid diagram specification. Rendered client-side by the Mermaid library. Used for flowcharts, sequence diagrams, and entity-relationship diagrams."@en .
 
   hproj:VegaLiteFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "Vega-Lite"@en ;
-      skos:notation      "application/vnd.vega.lite+json" ;
-      skos:definition    "The payload is a Vega-Lite chart specification. Used for statistical and analytical visualisations of holon state."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "Vega-Lite"@en ;
+      skos:notation  "application/vnd.vega.lite+json" ;
+      skos:definition "The payload is a Vega-Lite chart specification. Used for statistical and analytical visualisations of holon state."@en .
 
   hproj:GeoJSONFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "GeoJSON"@en ;
-      skos:notation      "application/geo+json" ;
-      skos:definition    "The payload is a GeoJSON feature collection. Used for geographic overlays on mapping clients. Preferred lightweight GIS format for web delivery."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "GeoJSON"@en ;
+      skos:notation  "application/geo+json" ;
+      skos:definition "The payload is a GeoJSON feature collection. Used for geographic overlays on mapping clients. Preferred lightweight GIS format for web delivery."@en .
 
   hproj:KMLFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "KML"@en ;
-      skos:notation      "application/vnd.google-earth.kml+xml" ;
-      skos:definition    "The payload is a Keyhole Markup Language document. Used for geographic visualisations in Google Earth, QGIS, and compatible GIS clients. Carries geometry, styles, and descriptive metadata."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "KML"@en ;
+      skos:notation  "application/vnd.google-earth.kml+xml" ;
+      skos:definition "The payload is a Keyhole Markup Language document. Used for geographic visualisations in Google Earth, QGIS, and compatible GIS clients."@en .
 
   hproj:GeoPackageFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "GeoPackage"@en ;
-      skos:notation      "application/geopackage+sqlite3" ;
-      skos:definition    "The payload is an OGC GeoPackage container (SQLite-based). Preferred format for full-fidelity GIS data exchange including vector features, raster tiles, and attribute tables."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "GeoPackage"@en ;
+      skos:notation  "application/geopackage+sqlite3" ;
+      skos:definition "The payload is an OGC GeoPackage container (SQLite-based). Preferred format for full-fidelity GIS data exchange."@en .
 
   hproj:ShapefileFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "Shapefile"@en ;
-      skos:notation      "application/x-esri-shapefile" ;
-      skos:definition    "The payload is an ESRI Shapefile archive. Legacy GIS format; supported for compatibility with existing GIS toolchains. New deployments SHOULD prefer GeoPackage."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "Shapefile"@en ;
+      skos:notation  "application/x-esri-shapefile" ;
+      skos:definition "The payload is an ESRI Shapefile archive. Legacy GIS format; supported for compatibility. New deployments SHOULD prefer GeoPackage."@en .
 
   hproj:CSVFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "CSV"@en ;
-      skos:notation      "text/csv" ;
-      skos:definition    "The payload is a comma-separated values tabular dataset. Used for analytical exports and integration with spreadsheet tooling."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "CSV"@en ;
+      skos:notation  "text/csv" ;
+      skos:definition "The payload is a comma-separated values tabular dataset. Used for analytical exports and integration with spreadsheet tooling."@en .
 
   hproj:SPARQLResultsJSONFormat a skos:Concept ;
-      skos:inScheme      hproj:ContentFormatScheme ;
-      rdfs:label         "SPARQL Results JSON"@en ;
-      skos:notation      "application/sparql-results+json" ;
-      skos:definition    "The payload is a SPARQL 1.2 query results set in JSON format. Used for API response projections and programmatic consumption."@en .
+      skos:inScheme  hproj:ContentFormatScheme ;
+      rdfs:label     "SPARQL Results JSON"@en ;
+      skos:notation  "application/sparql-results+json" ;
+      skos:definition "The payload is a SPARQL 1.2 query results set in JSON format. Used for API response projections and programmatic consumption."@en .
 
 }
 ```
@@ -514,7 +544,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-formats> {
 GRAPH <http://w3id.org/holon/projection/#skos-transmission> {
 
   hproj:TransmissionModeScheme a skos:ConceptScheme ;
-      rdfs:label     "HGA Projection Transmission Mode"@en ;
+      rdfs:label    "HGA Projection Transmission Mode"@en ;
       dcterms:description
           "Whether a projection is pushed eagerly (streaming) or pulled lazily (request/response)."@en ;
       skos:hasTopConcept
@@ -527,7 +557,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-transmission> {
       rdfs:label         "Eager (Push/Streaming)"@en ;
       skos:notation      "EAGER" ;
       skos:definition
-          "Scene graph UPDATE and projection emission are a single atomic step. The projection is delivered over WebSocket immediately after scene state changes. The triplestore may not be authoritative between updates."@en .
+          "Scene graph UPDATE and projection emission are a single atomic step. The projection is delivered over WebSocket immediately after scene state changes."@en .
 
   hproj:LazyTransmission a skos:Concept ;
       skos:inScheme      hproj:TransmissionModeScheme ;
@@ -535,7 +565,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-transmission> {
       rdfs:label         "Lazy (Pull/Request)"@en ;
       skos:notation      "LAZY" ;
       skos:definition
-          "The triplestore is authoritative. The client requests a snapshot when needed via REST. The projection is generated from a SPARQL CONSTRUCT or DESCRIBE at query time. The client is stateless with respect to scene state."@en .
+          "The triplestore is authoritative. The client requests a snapshot when needed via REST. The projection is generated from a SPARQL CONSTRUCT or DESCRIBE at query time."@en .
 
 }
 ```
@@ -549,6 +579,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-transmission> {
 <!-- mode=normative norm=true conformance=projection rfc2119=MUST -->
 ```trig
 @prefix hproj:   <http://w3id.org/holon/projection/> .
+@prefix hmedia:  <http://w3id.org/holon/media/> .
 @prefix holon:   <http://w3id.org/holon/> .
 @prefix hev:     <http://w3id.org/holon/event/> .
 @prefix hprov:   <http://w3id.org/holon/provenance/> .
@@ -563,7 +594,7 @@ GRAPH <http://w3id.org/holon/projection/#skos-transmission> {
 
 GRAPH <http://w3id.org/holon/projection/#vocabulary> {
 
-  # ── Classes ───────────────────────────────────────────────────────────────
+  # ── Classes ────────────────────────────────────────────────────────────────
 
   hproj:Projection a owl:Class ;
       rdfs:label   "Projection"@en ;
@@ -576,14 +607,14 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:label   "Now Graph"@en ;
       rdfs:comment "Stage 8 output. A contextual slice of the scene graph produced for a specific requesting agent and purpose. The AI Cartographer's primary input. Carries a scene graph block, provenance block, prompt block reference, and active parameter bindings (Bayesian frames, PoV, layer selections)."@en ;
       sh:agentInstruction
-          "A NowGraph is what the cartographer reads. It is a filtered, agent-scoped view of the current scene. Check sceneGraphBlock for the current state, promptBlock for the cartographer's instruction, and parameterBlock for the active reasoning context."@en ;
+          "A NowGraph is what the cartographer reads. It is a filtered, agent-scoped view of the current scene. Check sceneGraphBlock for the current state, promptBlock for the cartographer's instruction, and parameterBlock for the active reasoning context. If hmedia:cameraRef is present, it specifies the rendering viewpoint and sensor type."@en ;
       rdfs:subClassOf hproj:Projection .
 
   hproj:DepictionProjection a owl:Class ;
       rdfs:label   "Depiction Projection"@en ;
       rdfs:comment "Stage 9 output. The AI Cartographer's rendered product. Derived from a NowGraph via a CartographerActivity using a registered PromptBlock. Content may be text, SVG, GeoJSON, Mermaid spec, KML, or any declared content format."@en ;
       sh:agentInstruction
-          "A DepictionProjection is what the client receives and renders. The content is the depiction itself — prose, a diagram, a map. The envelope tells you where it came from (derivedFromNowGraph), how it was made (prov:wasGeneratedBy → CartographerActivity), and what rendering mode it targets (renderingMode)."@en ;
+          "A DepictionProjection is what the client receives and renders. The content is the depiction itself — prose, a diagram, a map. The envelope tells you where it came from (derivedFromNowGraph), how it was made (prov:wasGeneratedBy → CartographerActivity), and what rendering mode it targets (renderingMode). If hmedia:cameraRef is present, the depiction was produced from a specific camera viewpoint."@en ;
       rdfs:subClassOf hproj:Projection .
 
   hproj:OutputProduct a owl:Class ;
@@ -628,7 +659,7 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:domain  hproj:Projection ;
       rdfs:range   xsd:dateTime ;
       dcterms:description
-          "The UTC timestamp of the scene graph state this projection captures. For Now Graphs, this is the moment the scene was sliced. For Depiction Projections, this inherits from the source Now Graph."@en .
+          "The UTC timestamp of the scene graph state this projection captures."@en .
 
   hproj:expiresAt a owl:DatatypeProperty ;
       rdfs:label   "expires at"@en ;
@@ -642,21 +673,21 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:domain  hproj:Projection ;
       rdfs:range   holon:AgentHolon ;
       dcterms:description
-          "The AgentHolon that requested this projection. The agent's identity and access rights determine what is included in the now graph slice."@en .
+          "The AgentHolon that requested this projection."@en .
 
   hproj:sourceHolon a owl:ObjectProperty ;
       rdfs:label   "source holon"@en ;
       rdfs:domain  hproj:Projection ;
       rdfs:range   holon:Holon ;
       dcterms:description
-          "A holon whose state is included in this projection. One projection may cover multiple source holons (e.g. a cross-holon analytical projection). Use prov:wasDerivedFrom for the formal provenance link."@en .
+          "A holon whose state is included in this projection. One projection may cover multiple source holons. Use prov:wasDerivedFrom for the formal provenance link."@en .
 
   hproj:contentFormat a owl:ObjectProperty ;
       rdfs:label   "content format"@en ;
       rdfs:domain  hproj:Projection ;
       rdfs:range   skos:Concept ;
       dcterms:description
-          "The format of the projection content. MUST be a concept from hproj:ContentFormatScheme. Governs how the content at hproj:contentGraph or hproj:contentURI should be parsed."@en .
+          "The format of the projection content. MUST be a concept from hproj:ContentFormatScheme."@en .
 
   hproj:persistencePolicy a owl:ObjectProperty ;
       rdfs:label   "persistence policy"@en ;
@@ -670,7 +701,7 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:domain  hproj:Projection ;
       rdfs:range   holon:DataHolon ;
       dcterms:description
-          "When persistencePolicy is hproj:PersistentProjection, this property MUST be set once registration is complete. Points to the DataHolon IRI under which this projection is registered in the registry."@en .
+          "When persistencePolicy is hproj:PersistentProjection, this property MUST be set once registration is complete."@en .
 
   hproj:transmissionType a owl:DatatypeProperty ;
       rdfs:label   "transmission type"@en ;
@@ -684,14 +715,14 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:domain  hproj:Projection ;
       rdfs:range   xsd:integer ;
       dcterms:description
-          "Sequential integer identifying this projection's position in an event stream. Used for ordering and gap detection in eager streaming mode."@en .
+          "Sequential integer identifying this projection's position in an event stream."@en .
 
   hproj:baseProjection a owl:ObjectProperty ;
       rdfs:label   "base projection"@en ;
       rdfs:domain  hproj:Projection ;
       rdfs:range   hproj:Projection ;
       dcterms:description
-          "For delta projections (transmissionType = 'delta'): the full projection this delta applies to. The consumer MUST apply the delta to the base to reconstruct the current state."@en .
+          "For delta projections: the full projection this delta applies to."@en .
 
   hproj:transmissionMode a owl:ObjectProperty ;
       rdfs:label   "transmission mode"@en ;
@@ -700,53 +731,53 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       dcterms:description
           "Whether this projection was delivered eagerly (WebSocket push) or lazily (REST pull). From hproj:TransmissionModeScheme."@en .
 
-  # ── NowGraph Properties ───────────────────────────────────────────────────
+  # ── NowGraph Properties ────────────────────────────────────────────────────
 
   hproj:projectionDepth a owl:DatatypeProperty ;
       rdfs:label   "projection depth"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   xsd:integer ;
       dcterms:description
-          "How many containment levels of the holonic hierarchy are included. 0 = root holon only. 1 = root + immediate children. -1 = full subgraph (unlimited). Governs scale and scope of the now graph."@en ;
+          "How many containment levels of the holonic hierarchy are included. 0 = root holon only. 1 = root + immediate children. -1 = full subgraph (unlimited)."@en ;
       sh:agentInstruction
-          "Projection depth controls the zoom level. Depth 0 is the highest level summary. Larger depths add more holonic detail. -1 gives the complete subgraph but may be expensive to produce."@en .
+          "Projection depth controls the zoom level. Depth 0 is the highest level summary. -1 gives the complete subgraph but may be expensive to produce."@en .
 
   hproj:filterShape a owl:ObjectProperty ;
       rdfs:label   "filter shape"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   sh:NodeShape ;
       dcterms:description
-          "An optional SHACL NodeShape applied to the scene graph during now graph generation to select only the relevant subset of triples. The filter shape is a domain concern — it selects domain content, not HGA infrastructure."@en .
+          "An optional SHACL NodeShape applied to the scene graph during now graph generation to select only the relevant subset of triples."@en .
 
   hproj:sceneGraphBlock a owl:DatatypeProperty ;
       rdfs:label   "scene graph block"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   xsd:anyURI ;
       dcterms:description
-          "The named graph IRI containing the current-state RDF triples for the holons in this projection. This block IS the primary domain content of the NowGraph and is not constrained by hproj: shapes."@en .
+          "The named graph IRI containing the current-state RDF triples for the holons in this projection."@en .
 
   hproj:provenanceBlock a owl:DatatypeProperty ;
       rdfs:label   "provenance block"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   xsd:anyURI ;
       dcterms:description
-          "The named graph IRI containing the PROV-O provenance trail for all assertions in the scene graph block. Enables the cartographer to attribute statements to their sources."@en .
+          "The named graph IRI containing the PROV-O provenance trail for all assertions in the scene graph block."@en .
 
   hproj:promptBlock a owl:ObjectProperty ;
       rdfs:label   "prompt block"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   hproj:PromptBlock ;
       dcterms:description
-          "The registered PromptBlock IRI that the AI Cartographer SHOULD use when depicting this now graph. Multiple PromptBlocks may be registered for the same holon type; the one carried in the now graph envelope is the server's recommended interpretation."@en .
+          "The registered PromptBlock IRI that the AI Cartographer SHOULD use when depicting this now graph."@en .
 
   hproj:parameterBlock a owl:DatatypeProperty ;
       rdfs:label   "parameter block"@en ;
       rdfs:domain  hproj:NowGraph ;
       rdfs:range   xsd:anyURI ;
       dcterms:description
-          "Named graph IRI of the active parameter bindings for this projection: Bayesian authority frames, layer selections, point-of-view agent, and any other runtime parameters that shape the cartographer's interpretation."@en .
+          "Named graph IRI of the active parameter bindings for this projection: Bayesian authority frames, layer selections, point-of-view agent, and any other runtime parameters."@en .
 
-  # ── DepictionProjection Properties ───────────────────────────────────────
+  # ── DepictionProjection Properties ────────────────────────────────────────
 
   hproj:derivedFromNowGraph a owl:ObjectProperty ;
       rdfs:label   "derived from now graph"@en ;
@@ -767,23 +798,38 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       rdfs:domain  hproj:DepictionProjection ;
       rdfs:range   xsd:anyURI ;
       dcterms:description
-          "Named graph IRI of the depiction content when it is serialisable as RDF (Turtle, JSON-LD, SPARQL results). For non-RDF content, use hproj:contentURI or hproj:contentLiteral."@en .
+          "Named graph IRI of the depiction content when it is serialisable as RDF (Turtle, JSON-LD, SPARQL results)."@en .
 
   hproj:contentURI a owl:DatatypeProperty ;
       rdfs:label   "content URI"@en ;
       rdfs:domain  hproj:DepictionProjection ;
       rdfs:range   xsd:anyURI ;
       dcterms:description
-          "Dereferenceable IRI of the depiction content when it is a non-RDF external resource (KML file, GeoPackage, Shapefile, etc.). The format is declared in hproj:contentFormat."@en .
+          "Dereferenceable IRI of the depiction content when it is a non-RDF external resource (KML file, GeoPackage, Shapefile, etc.)."@en .
 
   hproj:contentLiteral a owl:DatatypeProperty ;
       rdfs:label   "content literal"@en ;
       rdfs:domain  hproj:DepictionProjection ;
       rdfs:range   xsd:string ;
       dcterms:description
-          "Inline string content for compact depictions that do not warrant a separate named graph or external resource — short prose narratives, Mermaid diagram specs, SVG strings. Use contentGraph or contentURI for large content."@en .
+          "Inline string content for compact depictions — short prose narratives, Mermaid diagram specs, SVG strings."@en .
 
-  # ── ProjectionActivity Properties ─────────────────────────────────────────
+  # ── Pass F Bridge — Camera Reference ─────────────────────────────────────
+  # hmedia:cameraRef is DEFINED in Pass F (hga-pass-f-media.databook.md).
+  # It is declared here as a cross-namespace reference so that hproj: shapes
+  # can include it in sh:ignoredProperties and provide advisory sh:property
+  # constraints. Implementations that do not load Pass F MAY ignore this
+  # property without violation.
+
+  hmedia:cameraRef a owl:ObjectProperty ;
+      rdfs:label   "camera reference"@en ;
+      rdfs:domain  hproj:NowGraph, hproj:DepictionProjection ;
+      rdfs:range   hmedia:CameraAgent ;
+      dcterms:description
+          "Optional reference to an hmedia:CameraAgent (Pass F) whose sensory characteristics define the point of view and sensor type for this projection. When present, the cartographer uses the camera's sensorType, shotType, and perspective as rendering hints. Multiple cameras MAY produce multiple concurrent projections from the same NowGraph. Advisory property — ignored by implementations that do not load Pass F."@en ;
+      rdfs:seeAlso <http://w3id.org/holon/spec/media> .
+
+  # ── ProjectionActivity Properties ──────────────────────────────────────────
 
   hproj:projectionStageNumber a owl:DatatypeProperty ;
       rdfs:label   "projection stage number"@en ;
@@ -792,7 +838,7 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       dcterms:description
           "The SCE pipeline stage number: 8 for scene projection (NowGraph production), 9 for cartographer depiction (DepictionProjection production)."@en .
 
-  # ── CartographerActivity Properties ──────────────────────────────────────
+  # ── CartographerActivity Properties ───────────────────────────────────────
 
   hproj:usedNowGraph a owl:ObjectProperty ;
       rdfs:label   "used now graph"@en ;
@@ -808,7 +854,7 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
       dcterms:description
           "The PromptBlock applied by the AI Cartographer in this activity."@en .
 
-  # ── PromptBlock Properties ────────────────────────────────────────────────
+  # ── PromptBlock Properties ─────────────────────────────────────────────────
 
   hproj:expectedInputType a owl:ObjectProperty ;
       rdfs:label   "expected input type"@en ;
@@ -836,6 +882,7 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
 <!-- mode=normative norm=true conformance=projection rfc2119=MUST -->
 ```trig
 @prefix hproj:   <http://w3id.org/holon/projection/> .
+@prefix hmedia:  <http://w3id.org/holon/media/> .
 @prefix holon:   <http://w3id.org/holon/> .
 @prefix hprov:   <http://w3id.org/holon/provenance/> .
 @prefix sh:      <http://www.w3.org/ns/shacl#> .
@@ -845,10 +892,11 @@ GRAPH <http://w3id.org/holon/projection/#vocabulary> {
 @prefix skos:    <http://www.w3.org/2004/02/skos/core#> .
 @prefix rdf:     <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix hev:     <http://w3id.org/holon/event/> .
 
 GRAPH <http://w3id.org/holon/projection/#shapes> {
 
-  # ── ProjectionBaseShape ───────────────────────────────────────────────────
+  # ── ProjectionBaseShape ────────────────────────────────────────────────────
   # Used via sh:node in all specific projection shapes.
 
   hproj:ProjectionBaseShape a sh:NodeShape ;
@@ -979,7 +1027,7 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           """ ;
       ] .
 
-  # ── NowGraphShape ─────────────────────────────────────────────────────────
+  # ── NowGraphShape ──────────────────────────────────────────────────────────
 
   hproj:NowGraphShape a sh:NodeShape ;
       sh:targetClass hproj:NowGraph ;
@@ -995,11 +1043,12 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           hproj:projectionDepth hproj:filterShape
           hproj:sceneGraphBlock hproj:provenanceBlock
           hproj:promptBlock hproj:parameterBlock
+          hmedia:cameraRef   # Pass F bridge — present if Pass F loaded
       ) ;
       sh:name   "Now Graph"@en ;
-      sh:intent "Validates a stage 8 Now Graph. Inherits base projection requirements. Requires sceneGraphBlock (the domain content IRI). Validates projectionDepth range. promptBlock and parameterBlock SHOULD be present."@en ;
+      sh:intent "Validates a stage 8 Now Graph. Inherits base projection requirements. Requires sceneGraphBlock. Validates projectionDepth range. promptBlock and parameterBlock SHOULD be present. hmedia:cameraRef MAY be present (Pass F)."@en ;
       sh:agentInstruction
-          "A NowGraph is the cartographer's scene. sceneGraphBlock MUST be present — that is where the domain state lives. projectionDepth tells you the zoom level."@en ;
+          "A NowGraph is the cartographer's scene. sceneGraphBlock MUST be present — that is where the domain state lives. projectionDepth tells you the zoom level. If hmedia:cameraRef is present, it specifies the rendering camera."@en ;
       sh:node hproj:ProjectionBaseShape ;
 
       sh:property [
@@ -1012,12 +1061,12 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
       ] ;
 
       sh:property [
-          sh:path     hproj:projectionDepth ;
-          sh:maxCount 1 ;
-          sh:datatype xsd:integer ;
+          sh:path        hproj:projectionDepth ;
+          sh:maxCount    1 ;
+          sh:datatype    xsd:integer ;
           sh:minInclusive -1 ;
-          sh:severity sh:Violation ;
-          sh:message  "projectionDepth MUST be an integer ≥ -1 if present."@en ;
+          sh:severity    sh:Violation ;
+          sh:message     "projectionDepth MUST be an integer ≥ -1 if present."@en ;
       ] ;
 
       sh:property [
@@ -1043,9 +1092,18 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           sh:nodeKind sh:IRI ;
           sh:severity sh:Warning ;
           sh:message  "NowGraph SHOULD carry a provenanceBlock linking assertions to source events."@en ;
+      ] ;
+
+      # Pass F bridge — advisory only; not required
+      sh:property [
+          sh:path     hmedia:cameraRef ;
+          sh:maxCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:severity sh:Info ;
+          sh:message  "NowGraph MAY carry hmedia:cameraRef (Pass F) to specify a rendering camera. Advisory — ignored if Pass F not loaded."@en ;
       ] .
 
-  # ── DepictionProjectionShape ──────────────────────────────────────────────
+  # ── DepictionProjectionShape ───────────────────────────────────────────────
 
   hproj:DepictionProjectionShape a sh:NodeShape ;
       sh:targetClass hproj:DepictionProjection ;
@@ -1060,9 +1118,10 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           prov:wasGeneratedBy prov:wasDerivedFrom
           hproj:derivedFromNowGraph hproj:renderingMode
           hproj:contentGraph hproj:contentURI hproj:contentLiteral
+          hmedia:cameraRef   # Pass F bridge — present if Pass F loaded
       ) ;
       sh:name   "Depiction Projection"@en ;
-      sh:intent "Validates a stage 9 DepictionProjection. Requires derivedFromNowGraph and renderingMode. Requires at least one of: contentGraph, contentURI, or contentLiteral."@en ;
+      sh:intent "Validates a stage 9 DepictionProjection. Requires derivedFromNowGraph and renderingMode. Requires at least one of: contentGraph, contentURI, or contentLiteral. hmedia:cameraRef MAY be present (Pass F)."@en ;
       sh:agentInstruction
           "A DepictionProjection is what the client renders. derivedFromNowGraph is its provenance. renderingMode tells you how to present it. Check contentFormat then use contentGraph, contentURI, or contentLiteral for the actual content."@en ;
       sh:node hproj:ProjectionBaseShape ;
@@ -1089,6 +1148,15 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           sh:message  "DepictionProjection MUST declare exactly one renderingMode from hproj:RenderingModeScheme."@en ;
       ] ;
 
+      # Pass F bridge — advisory only
+      sh:property [
+          sh:path     hmedia:cameraRef ;
+          sh:maxCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:severity sh:Info ;
+          sh:message  "DepictionProjection MAY carry hmedia:cameraRef (Pass F) identifying the camera used to produce this depiction. Advisory — ignored if Pass F not loaded."@en ;
+      ] ;
+
       sh:sparql [
           a sh:SPARQLConstraint ;
           sh:severity sh:Violation ;
@@ -1104,13 +1172,13 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           """ ;
       ] .
 
-  # ── OutputProductShape ────────────────────────────────────────────────────
+  # ── OutputProductShape ─────────────────────────────────────────────────────
 
   hproj:OutputProductShape a sh:NodeShape ;
       sh:targetClass hproj:OutputProduct ;
       sh:name   "Output Product"@en ;
       sh:intent "Validates a formal output product. Inherits base projection requirements. Warns if persistence policy is absent (products are typically persistent). Requires contentFormat."@en ;
-      sh:node hproj:ProjectionBaseShape ;
+      sh:node   hproj:ProjectionBaseShape ;
       sh:agentInstruction
           "An OutputProduct is a formal deliverable. Check persistencePolicy — persistent products have a registeredAs DataHolon IRI."@en ;
 
@@ -1121,32 +1189,32 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           sh:message  "OutputProduct SHOULD declare a persistencePolicy (typically PersistentProjection)."@en ;
       ] .
 
-  # ── ProjectionActivityShape ───────────────────────────────────────────────
+  # ── ProjectionActivityShape ────────────────────────────────────────────────
 
   hproj:ProjectionActivityShape a sh:NodeShape ;
       sh:targetClass hproj:ProjectionActivity ;
       sh:name   "Projection Activity"@en ;
       sh:intent "Validates a projection pipeline activity. Inherits IngestionActivityShape. Checks that projectionStageNumber is 8 or 9 if present."@en ;
-      sh:node hprov:IngestionActivityShape ;
+      sh:node   hprov:IngestionActivityShape ;
       sh:agentInstruction
           "A ProjectionActivity is a pipeline run at stage 8 or 9. projectionStageNumber identifies which."@en ;
 
       sh:property [
-          sh:path         hproj:projectionStageNumber ;
-          sh:maxCount     1 ;
-          sh:datatype     xsd:integer ;
-          sh:in           ( 8 9 ) ;
-          sh:severity     sh:Violation ;
-          sh:message      "projectionStageNumber MUST be 8 or 9 if present."@en ;
+          sh:path     hproj:projectionStageNumber ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:integer ;
+          sh:in       ( 8 9 ) ;
+          sh:severity sh:Violation ;
+          sh:message  "projectionStageNumber MUST be 8 or 9 if present."@en ;
       ] .
 
-  # ── CartographerActivityShape ─────────────────────────────────────────────
+  # ── CartographerActivityShape ──────────────────────────────────────────────
 
   hproj:CartographerActivityShape a sh:NodeShape ;
       sh:targetClass hproj:CartographerActivity ;
       sh:name   "Cartographer Activity"@en ;
       sh:intent "Validates a stage 9 AI Cartographer activity. Requires usedNowGraph and usedPromptBlock."@en ;
-      sh:node hproj:ProjectionActivityShape ;
+      sh:node   hproj:ProjectionActivityShape ;
       sh:agentInstruction
           "A CartographerActivity is a stage 9 run. usedNowGraph is what the cartographer read; usedPromptBlock is how it was instructed."@en ;
 
@@ -1170,7 +1238,7 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           sh:message  "CartographerActivity MUST declare exactly one usedPromptBlock."@en ;
       ] .
 
-  # ── PromptBlockShape ──────────────────────────────────────────────────────
+  # ── PromptBlockShape ───────────────────────────────────────────────────────
 
   hproj:PromptBlockShape a sh:NodeShape ;
       sh:targetClass hproj:PromptBlock ;
@@ -1197,6 +1265,29 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
           sh:message  "PromptBlock SHOULD declare an expectedInputType."@en ;
       ] .
 
+  # ── ProjectionBridgeReceptionShape ────────────────────────────────────────
+  # Non-normative advisory shape. Checks that if hmedia:cameraRef is present
+  # on any Projection, it points to something that looks like a CameraAgent.
+  # Skipped by validators that do not load Pass F; carries sh:Info severity.
+
+  hproj:ProjectionBridgeReceptionShape a sh:NodeShape ;
+      sh:targetClass hproj:Projection ;
+      sh:name   "Projection Camera Bridge (advisory)"@en ;
+      sh:intent "If hmedia:cameraRef is asserted on a Projection, it SHOULD reference a resource of type hmedia:CameraAgent. Advisory only — Pass F dependent."@en ;
+
+      sh:sparql [
+          a sh:SPARQLConstraint ;
+          sh:severity sh:Info ;
+          sh:message  "hmedia:cameraRef on a Projection SHOULD reference an hmedia:CameraAgent (Pass F). This advisory fires only when the reference is present but the target type is not declared."@en ;
+          sh:select   """
+              PREFIX hmedia: <http://w3id.org/holon/media/>
+              SELECT $this WHERE {
+                  $this hmedia:cameraRef ?cam .
+                  FILTER NOT EXISTS { ?cam a hmedia:CameraAgent }
+              }
+          """ ;
+      ] .
+
 }
 ```
 
@@ -1206,61 +1297,57 @@ GRAPH <http://w3id.org/holon/projection/#shapes> {
 
 ### 5.1 Stage 8 → Stage 9 Data Flow
 
-The formal connection between the two projection stages using the canonical
-Turtle 1.2 annotation form:
-
 <!-- databook:id: pipeline-integration-example -->
 <!-- mode=example norm=false -->
 ```turtle12
 VERSION "1.2"
 PREFIX hproj:   <http://w3id.org/holon/projection/>
+PREFIX hmedia:  <http://w3id.org/holon/media/>
 PREFIX holon:   <http://w3id.org/holon/>
 PREFIX hev:     <http://w3id.org/holon/event/>
 PREFIX prov:    <http://www.w3.org/ns/prov#>
 PREFIX rdfs:    <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
 
-# ── Stage 8: Scene Projection ────────────────────────────────────────────
+# ── Stage 8: Scene Projection ─────────────────────────────────────────────
 
 <urn:activity:scene-proj-001>
     a hproj:ProjectionActivity ;
-    rdfs:label           "Scene projection — patient-007, 2026-06-04"@en ;
-    hprov:transformerType hprov:SPARQLTransformer ;
-    hprov:transformerIRI  <urn:sparql:scene-construct-query> ;
+    rdfs:label              "Scene projection — patient-007, 2026-06-04"@en ;
     hproj:projectionStageNumber 8 ;
-    prov:startedAtTime   "2026-06-04T09:00:05Z"^^xsd:dateTime .
+    prov:startedAtTime      "2026-06-04T09:00:05Z"^^xsd:dateTime .
 
 <urn:proj:now-patient-007-001>
     a hproj:NowGraph ;
-    rdfs:label           "Now graph — patient-007, 2026-06-04T09:00:05"@en ;
-    hproj:projectionType  hproj:NowGraphProjection ;
-    hproj:validAt         "2026-06-04T09:00:05Z"^^xsd:dateTime ;
-    hproj:requestingAgent <urn:agent:ward-nurse-chen> ;
-    hproj:contentFormat   hproj:TurtleFormat ;
+    rdfs:label              "Now graph — patient-007, 2026-06-04T09:00:05"@en ;
+    hproj:projectionType    hproj:NowGraphProjection ;
+    hproj:validAt           "2026-06-04T09:00:05Z"^^xsd:dateTime ;
+    hproj:requestingAgent   <urn:agent:ward-nurse-chen> ;
+    hproj:contentFormat     hproj:TurtleFormat ;
     hproj:persistencePolicy hproj:EphemeralProjection ;
-    hproj:projectionDepth 2 ;
-    hproj:sceneGraphBlock <urn:graph:scene-patient-007-snapshot> ;
-    hproj:provenanceBlock <urn:graph:prov-patient-007-snapshot> ;
-    hproj:promptBlock     <urn:prompt:ward-round-immersive-v1> ;
-    hproj:transmissionType "full" ;
-    prov:wasGeneratedBy   <urn:activity:scene-proj-001> ;
-    prov:wasDerivedFrom   <urn:holon:patient-007> .
+    hproj:projectionDepth   2 ;
+    hproj:sceneGraphBlock   <urn:graph:scene-patient-007-snapshot> ;
+    hproj:provenanceBlock   <urn:graph:prov-patient-007-snapshot> ;
+    hproj:promptBlock       <urn:prompt:ward-round-immersive-v1> ;
+    hproj:transmissionType  "full" ;
+    # Optional Pass F camera reference — Immersive mode default camera
+    hmedia:cameraRef        hmedia:ImmersiveDefault ;
+    prov:wasGeneratedBy     <urn:activity:scene-proj-001> ;
+    prov:wasDerivedFrom     <urn:holon:patient-007> .
 
 # ── Stage 9: Cartographer Depiction ──────────────────────────────────────
 
 <urn:activity:cartographer-001>
     a hproj:CartographerActivity ;
-    rdfs:label            "Cartographer — ward round depiction, 2026-06-04"@en ;
-    hprov:transformerType  hprov:LLMTransformer ;
-    hprov:transformerIRI   <https://api.anthropic.com/v1/models/claude-sonnet-4-6> ;
+    rdfs:label              "Cartographer — ward round depiction, 2026-06-04"@en ;
     hproj:projectionStageNumber 9 ;
-    hproj:usedNowGraph    <urn:proj:now-patient-007-001> ;
-    hproj:usedPromptBlock <urn:prompt:ward-round-immersive-v1> ;
-    prov:startedAtTime    "2026-06-04T09:00:06Z"^^xsd:dateTime .
+    hproj:usedNowGraph      <urn:proj:now-patient-007-001> ;
+    hproj:usedPromptBlock   <urn:prompt:ward-round-immersive-v1> ;
+    prov:startedAtTime      "2026-06-04T09:00:06Z"^^xsd:dateTime .
 
 <urn:proj:depiction-patient-007-001>
     a hproj:DepictionProjection ;
-    rdfs:label             "Ward round depiction — patient-007, 2026-06-04"@en ;
+    rdfs:label              "Ward round depiction — patient-007, 2026-06-04"@en ;
     hproj:projectionType    hproj:DepictionProjectionType ;
     hproj:validAt           "2026-06-04T09:00:05Z"^^xsd:dateTime ;
     hproj:requestingAgent   <urn:agent:ward-nurse-chen> ;
@@ -1268,9 +1355,10 @@ PREFIX xsd:     <http://www.w3.org/2001/XMLSchema#>
     hproj:renderingMode     hproj:ImmersiveMode ;
     hproj:persistencePolicy hproj:EphemeralProjection ;
     hproj:derivedFromNowGraph <urn:proj:now-patient-007-001> ;
+    hmedia:cameraRef        hmedia:ImmersiveDefault ;
     hproj:contentLiteral
         "Patient 007 is stable. Blood pressure is within normal range..."@en ;
-    prov:wasGeneratedBy    <urn:activity:cartographer-001> .
+    prov:wasGeneratedBy     <urn:activity:cartographer-001> .
 ```
 
 ### 5.2 Projection to DataHolon Transition
@@ -1285,25 +1373,14 @@ normative:
 3. On registration, `hproj:registeredAs` is set to the assigned DataHolon IRI
 4. The DataHolon's `prov:wasDerivedFrom` MUST trace back to the source holons
 
-The registered DataHolon enters the registry at `holon:CandidateStatus` and
-follows the normal lifecycle. Its provenance record is the authoritative audit
-trail linking the published product to its source scene state.
-
 ### 5.3 Projection Annotations
 
-Projections may be annotated using the canonical Turtle 1.2 reification
-pattern. A concern level annotation on a now graph signal, for example:
-
-<!-- databook:id: projection-annotation-example -->
-<!-- mode=example norm=false -->
 ```turtle12
 VERSION "1.2"
 PREFIX hproj: <http://w3id.org/holon/projection/>
 PREFIX holon: <http://w3id.org/holon/>
 PREFIX rdfs:  <http://www.w3.org/2000/01/rdf-schema#>
 
-# Annotate the derivedFromNowGraph link with a concern level
-# to flag that the scene state was high-concern at projection time.
 <urn:proj:depiction-patient-007-001>
     hproj:derivedFromNowGraph <urn:proj:now-patient-007-001>
     ~ <urn:ann:depiction-001-concern>
@@ -1324,11 +1401,6 @@ Add to the HGA sub-namespace table in `hga-pass0-namespace-registry.databook.md`
 | Prefix | Namespace IRI | Conformance | Content |
 |---|---|---|---|
 | `hproj:` | `http://w3id.org/holon/projection/` | Projection | Projection envelopes, NowGraph, depiction, output products, cartographer |
-
-Add to the `.htaccess` redirect rules, content negotiation for `hproj:` terms at path `/holon/projection/*`.
-
-Add to the JSON-LD context stub:
-- `"hproj": "http://w3id.org/holon/projection/"` — and all class/property term mappings from §3.
 
 ### Spec Manifest — addition
 
