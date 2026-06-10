@@ -50,8 +50,8 @@ There are several documents that help to describe and specify the various aspect
 
 At this stage in the process, there will likely be multiple distinct architectures proposed for the HGHC. The following are specifications produced independently by different interested parties. 
 None of these should be taken as canonical with respect to this community group (we will be setting up formal [specifications](/specifications.databook.md) folder when we reach a point where there is public consensus). 
-* [The Holon Graph Architecture](architectures/hga/README.md), by Semantical LLC.
-* _More to come_
+* [The Holon Graph Architecture](architectures/hga/README.md), by Kurt Cagle, Semantical LLC
+* [Databooks](architectures/databook/README.md), by Kurt Cagle, Semantical LLC
 
 ---
 
