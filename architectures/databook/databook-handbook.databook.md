@@ -51,6 +51,10 @@ process:
     role: orchestrator
 ---
 
+---
+# The DataBook Handbook — A Primer for Practitioners
+---
+
 ## § 0  How to Read This Handbook
 
 > *A practitioner's guide to DataBooks — what they are, why they exist,
