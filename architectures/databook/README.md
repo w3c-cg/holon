@@ -22,9 +22,9 @@ node bin/databook.js <command>
 
 ## Databook Reference Guides
 
-* [Databook Handbook](databook-handbook.databook.md).
-* [Databook CLI Commands](databook-cli-commands.databook.md).
-* [Databook CLI Primer](databook-cli-primer.databook.md)
+* [Databook Handbook](databook-handbook.databook.md). A description of how to set up the various components of a databook.
+* [Databook CLI Commands](databook-cli-commands.databook.md). A reference page for Databook CLI commands.
+* [Databook CLI Primer](databook-cli-primer.databook.md). A Primer for using the Databook CLI
 
 ---
 
