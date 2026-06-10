@@ -1,4 +1,4 @@
-# databook-cli
+# The Databook CLI
 
 Node.js CLI for **DataBook** semantic documents — Markdown files that carry typed RDF/SPARQL/SHACL payloads alongside human-readable prose and self-describing YAML frontmatter.
 
