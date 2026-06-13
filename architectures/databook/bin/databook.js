@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * databook — CLI for DataBook semantic documents. v1.4.2
+ * databook — CLI for DataBook semantic documents. v1.4.4
  */
 
 import { program } from 'commander';
@@ -24,11 +24,13 @@ import { runDescribe }      from '../commands/describe.js';
 import { runIngest }        from '../commands/ingest.js';
 import { runShacl2Sparql }        from '../commands/shacl2sparql.js';
 import { runList }          from '../commands/list.js';
+import { runCompact }        from '../commands/compact.js';
+
 
 program
   .name('databook')
   .description('DataBook CLI — inspect, extract, push, pull, process, query, and validate DataBook semantic documents')
-  .version('1.4.2');
+  .version('1.4.4');
 
 // ─── databook head ────────────────────────────────────────────────────────────────
 program
@@ -526,6 +528,63 @@ Examples:
   `)
   .action(async (opts) => { await runList(opts); });
 
+
+// ─── databook compact ─────────────────────────────────────────────────────────
+
+program
+  .command('compact <source>')
+  .description('Collapse Turtle 1.2 event chains to terminal state, producing a compacted DataBook')
+  .option('--subject <iri>',           'Compact chains for this subject IRI only')
+  .option('--property <iri>',          'Compact only this property (requires --subject)')
+  .option('--graph <iri>',             'Named graph scope (v0.2.0 — reserved)')
+  .option('--as-of <dateTime>',        'Terminal state at or before this ISO 8601 datetime (default: latest)')
+  .option('-o, --output <file>',       'Output file (default: <source>-compacted.databook.md)')
+  .option('--in-place',                'Overwrite source (requires --confirm-overwrite; backs up to <source>.bak)')
+  .option('--confirm-overwrite',       'Required companion to --in-place')
+  .option('--overwrite',               'Allow overwriting an existing output file')
+  .option('--dry-run',                 'Print compaction report without writing output')
+  .option('--passthrough',             'Write source unchanged when no chains found (exit 0)')
+  .option('-v, --verbose',             'Print chain resolution details to stderr')
+  .option('--no-warn-conflicts',       'Suppress conflict resolution warnings')
+  .option('--agent <iri>',             'Agent IRI for CompactionActivity (default: urn:databook:cli)')
+  .option('--no-provenance',           'Suppress CompactionActivity provenance block in output')
+  .option('--encoding <enc>',          'Output encoding: utf8 (default), utf8bom, utf16')
+  .option('-q, --quiet',               'Suppress summary output')
+  .addHelpText('after', `
+Collapses Turtle 1.2 reification chains — multiple reifiers on the same
+subject-predicate pair — to their terminal (latest) state. Always writes a
+new DataBook; the source is never modified (unless --in-place is used).
+
+Supports both chain patterns:
+  Pattern A  Single base triple, multiple reifiers (comma-separated ~ blocks)
+  Pattern B  Multiple triples, same subject-predicate, one reifier each
+
+Temporal ordering (per chain):
+  1. Sort by temporal property (Event:at, hev:at, dcterms:created, ...)
+  2. Tie: sequence integer in reifier IRI (stopColor3 > stopColor2 > stopColor1)
+  3. Tie: document order (last wins)
+  Warnings emitted at each fallback.
+
+Scope flags (mutually exclusive; default: all chains):
+  (none)                       Compact all turtle12 event chains
+  --subject <IRI>              All chains for a given subject
+  --subject <IRI> --property <IRI>   One specific property chain
+
+Pipeline use:
+  databook compact sim-run-1.databook.md -o baseline.databook.md
+  databook push baseline.databook.md -d ds
+
+Examples:
+  databook compact stoplight.databook.md
+  databook compact stoplight.databook.md -o stoplight-now.databook.md
+  databook compact events.databook.md --as-of "2026-06-13T06:00:00Z" -o baseline.databook.md
+  databook compact events.databook.md --subject https://example.org/sensor/A1
+  databook compact events.databook.md --dry-run
+  databook compact events.databook.md --passthrough -o output.databook.md
+  databook compact events.databook.md --in-place --confirm-overwrite
+  `)
+  .action(async (source, opts) => { await runCompact(source, opts); });
+
 process.on('uncaughtException', (err) => {
   if (err.code === 'E_UNREACHABLE') { process.stderr.write(`error: ${err.message}\n`); process.exit(4); }
   if (err.exitCode) { process.stderr.write(`error: ${err.message}\n`); process.exit(err.exitCode); }
@@ -535,4 +594,5 @@ process.on('uncaughtException', (err) => {
 });
 
 program.parseAsync(process.argv);
+
 
