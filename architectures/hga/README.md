@@ -73,6 +73,7 @@ maintained in the `hga/` folder of the W3C Holon CG Google Drive workspace.
 | E1 | [hga-pass-e-markov-blanket](#pass-e-markov-blanket) | Pass E | 0.3.0 | Markov | ✓ Active |
 | E2 | [hga-pass-e-projection](#pass-e-projection) | Pass E | 0.1.1 | Projection | ✓ Active |
 | F1 | [hga-pass-f-media](#pass-f-media) | Pass F | 0.1.0 | Media | 🔵 New |
+| G1 | [hga-pass-g-viewer](#pass-g-viewer) | Pass G | 0.1.0 | Viewer | 🔵 New |
 | T | [hga-table-of-contents](#table-of-contents) | — | 1.1.0 | — | ✓ Active |
 
 ¹ Minor amendment pending — applies cross-reference note only; SHACL shapes unchanged.
@@ -89,6 +90,7 @@ maintained in the `hga/` folder of the W3C Holon CG Google Drive workspace.
 | `hspec:HGAMarkov` | 4 | HGABayesian | Pass 0 Manifest |
 | `hspec:HGAProjection` | 5 | HGAExtended | Pass 0 Manifest |
 | `hspec:HGAMedia` | 6 | HGAMarkov | Pass 0 Manifest |
+| `hspec:HGAViewer` | 7 | HGAProjection | Pass G |
 
 ---
 
@@ -341,6 +343,33 @@ DepthOfFieldScheme (3 values).
 
 ---
 
+---
+
+### [Pass G: Viewer Pass](hga-pass-g-viewer.databook.md)
+
+**File:** `hga-pass-g-viewer.databook.md` · **Version:** 0.1.0  
+**Conformance:** Viewer ·
+
+Viewer context envelope vocabulary and shapes. Defines the four-part
+ViewerPass structure (ViewerProfile, PriorContext, StanceDeclaration,
+ResolutionProfile) that parameterises Stage 8 NowGraph construction.
+Viewer properties are modelled as time-stamped, provenanced, weighted
+assertion events (extending `hev:AssertionEvent` via Turtle 1.2
+reification) rather than static profile fields, preserving full
+provenance and temporal evolution of viewer state. Introduces bridge
+property `hview:viewerRef` on `hproj:NowGraph`. Includes SHACL shapes
+for all four sub-structures and a reifier shape for viewer assertions.
+Anonymous viewer fallback defined for sessions without a supplied
+ViewerPass (Standing Issue SI-G-01).
+
+**Key vocabulary:** `hview:ViewerPass`, `hview:ViewerProfile`,
+`hview:ViewerAssertion`, `hview:PriorContext`, `hview:StanceDeclaration`,
+`hview:TrustEntry`, `hview:ResolutionProfile`, `hview:DimensionWeight`,
+`hview:viewerRef`, `hview:assertionWeight`, `hview:trustOrder`,
+`hview:salience`.
+
+---
+
 ### [Table of Contents](hga-table-of-contents.databook.md)
 
 **File:** `hga-table-of-contents.databook.md` · **Version:** 1.1.0  
@@ -366,6 +395,7 @@ for E.1, E.2, B.1, C.1.
 | `hga-pass-c-events` | 0.1.0 → 0.1.1¹ | 2026-06-09 | Cross-reference note only |
 | `hga-pass-f-media` | (new) 0.1.0 | 2026-06-09 | Initial build |
 | `hga-table-of-contents` | 1.0.0 → 1.1.0 | 2026-06-09 | Pass F additions throughout |
+| `hga-pass-g-viewer` | (new) 0.1.0 | 2026-06-13 | Initial build |
 
 ¹ Amendment note produced — apply manually to existing file.
 
