@@ -4,7 +4,7 @@ title: "HGA Vocabulary Summary — Classes, Properties, Shapes and Controlled Vo
 type: spec-section
 version: 0.2.0
 created: 2026-06-04
-updated: 2026-06-09
+updated: 2026-06-14
 author:
   - name: Kurt Cagle
     iri: https://holongraph.com/people/kurt-cagle
@@ -127,6 +127,39 @@ External vocabularies used normatively:
 
 ---
 
+## 1.1 Upper Ontology Alignment
+
+HGA defines five specialised Holon subtypes. Each is informatively aligned with
+the PROV-O vocabulary (used normatively in HGA's provenance layer) and optionally
+alignable to gUFO (Unified Foundational Ontology) for deployments that require
+formal upper ontology grounding. The gUFO alignment is non-normative in HGA
+itself; it becomes normative when a symbolic governance layer is applied over
+an HGA deployment and requires a formal disjoint partition of the entity space.
+
+| Holon subtype | PROV-O alignment | gUFO alignment | Role in HGA pipeline |
+|---|---|---|---|
+| `holon:AgentHolon` | `prov:Agent` | `gufo:Agent` | Participants that generate or receive events; hold beliefs via Markov blankets |
+| `holon:OrganisationHolon` | `prov:Agent` (collective) | `gufo:Collective` | Collective entities; subclass of AgentHolon in HGA (see note) |
+| `holon:PlaceHolon` | `prov:Entity` | `gufo:Site` / `gufo:SpatialRegion` | Physical or logical locations; boundary targets |
+| `holon:DataHolon` | `prov:Entity` | `gufo:InformationObject` | Information-bearing artefacts; produced and consumed by the pipeline |
+| `holon:ProcessHolon` | `prov:Activity` | `gufo:Process` | Ongoing workflows; pipeline runs and staged operations |
+
+All alignments in this table are informative. Implementations that adopt gUFO
+grounding MUST ensure class declarations chain to the specified gUFO upper
+category; the HGA vocabulary specification does not enforce this directly.
+
+> **Note on OrganisationHolon and AgentHolon:** In HGA, `holon:OrganisationHolon`
+> is a subclass of `holon:AgentHolon` — reflecting that organisations participate
+> in events and can generate or receive messages as collective actors. In
+> gUFO-grounded deployments, however, `gufo:Agent` and `gufo:Collective` are
+> disjoint upper categories. Implementations adopting gUFO grounding SHOULD
+> treat the subclass relationship as a participation-capability inheritance
+> (organisations *act* like agents at the event level) rather than an
+> ontological identity claim, and SHOULD NOT infer that an
+> `holon:OrganisationHolon` instance is also a `gufo:Agent` instance.
+
+---
+
 ## 2. Class Inventory
 
 ### 2.1 Core Conformance Classes
@@ -207,6 +240,28 @@ geometry bindings are a non-normative domain extension (see Annex C).
 
 Wraps a document, dataset, report, or knowledge artefact as a holon.
 Navigated and consumed rather than acted upon. SHOULD declare a payloadGraph.
+Informatively aligned with `prov:Entity` and `gufo:InformationObject`.
+
+**Pipeline-internal DataHolons:** The HGA pipeline itself produces DataHolons
+at multiple stages. `holon:GroundingRecord` instances (stage 2 entity grounding),
+SHACL ValidationReport instances (stage 3), confidence gate outcome records
+(stage 5), and `hproj:NowGraph` / `hproj:DepictionProjection` projections
+registered as persistent are all DataHolons. `hproj:PromptBlock` is explicitly
+typed as a `holon:DataHolon` subtype. This means the pipeline's own
+infrastructure objects are first-class holons navigable via the same IRI and
+portal mechanisms as domain content.
+
+**Observed vs. derived DataHolons:** A DataHolon may be *observed* — produced
+by ingesting an external artefact such as a document, database record, or sensor
+output, via an `hprov:IngestionActivity` — or *derived* — computed from one or
+more existing DataHolons via inference, a SPARQL CONSTRUCT, or a SHACL Rules
+derivation step, via an `hprov:DerivationActivity`. Derived DataHolons SHOULD
+carry `hprov:DerivationActivity` provenance recording both the source DataHolons
+and the derivation rule applied. See Pass C §2 for the DerivationActivity
+vocabulary and shapes.
+
+**Subclasses:** hproj:PromptBlock, hproj:NowGraph (when persistent),
+hproj:DepictionProjection (when persistent), hproj:OutputProduct
 
 **Validated by:** holon:DataHolonShape (extends HolonShape)
 
@@ -340,6 +395,32 @@ SHACL engine, or human reviewer.
 #### `hprov:TransformerType` — Controlled vocabulary for transformer kinds
 Enum class. Individuals: LLMTransformer, XSLTTransformer, SPARQLTransformer,
 SHACLTransformer, HumanTransformer, CompositeTransformer.
+
+---
+
+#### `hprov:DerivationActivity` — A computed derivation run
+**Superclass:** `prov:Activity` | **Conformance:** Core
+
+Records the production of a derived DataHolon from one or more existing
+DataHolons via an explicit derivation rule. Complements `hprov:IngestionActivity`
+for the derived-artifact case; the two are disjoint sub-kinds of `prov:Activity`.
+
+**Key distinction from IngestionActivity:** An `hprov:IngestionActivity` transforms
+an *external signal* into HGA content. An `hprov:DerivationActivity` computes new
+HGA content from *existing HGA content*. Use `DerivationActivity` when all sources
+are holons already in the scene graph; use `IngestionActivity` when the source is
+an external signal entering the pipeline at stage 1.
+
+**Typical derivation sources:** A league-standing DataHolon computed from
+match-result DataHolons via SPARQL CONSTRUCT; an insight assessment computed from
+evidence DataHolons by a classification rule; an aggregated summary DataHolon
+produced from multiple source DataHolons by a SHACL Rules step.
+
+Key properties: `hprov:derivedFromHolon` (1..* source DataHolon IRIs, MUST);
+`hprov:derivationRule` (IRI of the SPARQL CONSTRUCT, SHACL Rule, or derivation
+function applied, SHOULD).
+
+**Validated by:** hprov:DerivationActivityShape
 
 ---
 
@@ -938,6 +1019,7 @@ The base shape `holon:HolonEventBaseShape` validates: rdfs:label (≥1); targetH
 | `hprov:EventEnvelopeProvenanceShape` | `hev:HolonEvent` | prov:wasGeneratedBy (≥1 IRI) | wasAttributedTo SHOULD be present; wasDerivedFrom MAY be present (Info) |
 | `hprov:IngestionActivityShape` | `hprov:IngestionActivity` | rdfs:label; transformerType (1, from enum); transformerIRI (1 IRI); ingestVector in [1,7] if present; pipelineStage in [1,9] if present; confidenceGateOutcome from controlled string set if present | — |
 | `hprov:DataBookProvenanceShape` | `hdb:DataBook` | dcterms:created MUST be date or dateTime if present | prov:wasGeneratedBy SHOULD be present; dcterms:creator SHOULD be named IRI (Info) |
+| `hprov:DerivationActivityShape` | `hprov:DerivationActivity` | rdfs:label; derivedFromHolon (1..*, DataHolon IRIs); transformerType (1); transformerIRI (1) | derivationRule SHOULD be declared; prov:startedAtTime / endedAtTime SHOULD be present |
 
 ### 4.6 Bayesian Shapes (Bayesian ⚠ at-risk)
 
@@ -1289,6 +1371,7 @@ the minimum required properties for a conformant instance.
 | `hev:CommandRejected` | CommandRejectedShape | rdfs:label, targetHolon, assertedAt, receivedAt, prov:wasGeneratedBy, causedBy, rejectionReason |
 | `hev:ViolationEvent` | ViolationEventShape | rdfs:label, targetHolon, assertedAt, receivedAt, prov:wasGeneratedBy, causedBy, violationReport |
 | `hprov:IngestionActivity` | IngestionActivityShape | rdfs:label, transformerType, transformerIRI |
+| `hprov:DerivationActivity` | DerivationActivityShape | rdfs:label, transformerType, transformerIRI, derivedFromHolon (1..*) |
 | `hbayes:BeliefState` ⚠ | BeliefStateShape | rdfs:label, prior, posterior, precision |
 | `hbayes:FreeEnergy` ⚠ | FreeEnergyShape | rdfs:label, complexity, accuracy |
 | `hbayes:PolicySelection` ⚠ | PolicySelectionShape | rdfs:label, selectedPolicy, expectedFreeEnergy |
