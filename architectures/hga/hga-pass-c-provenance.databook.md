@@ -2,8 +2,9 @@
 id: http://w3id.org/holon/spec/provenance
 title: "HGA Provenance Shapes — PROV-O Extensions and DataBook Alignment"
 type: spec-section
-version: 0.1.0
+version: 0.1.1
 created: 2026-06-04
+updated: 2026-06-14
 author:
   - name: Kurt Cagle
     iri: https://holongraph.com/people/kurt-cagle
@@ -24,6 +25,9 @@ subject:
   - event envelope
 description: >
   Normative PROV-O shape extensions for HGA envelope-level provenance.
+  Amendment 0.1.1: adds hprov:DerivationActivity class, hprov:derivedFromHolon
+  and hprov:derivationRule properties, and hprov:DerivationActivityShape for
+  derived DataHolon provenance tracking.
   Defines hprov: vocabulary for HGA-specific provenance properties
   (ingest vector, pipeline stage, transformer IRI), SHACL shapes validating
   PROV-O assertions on event envelopes and DataBook process stamps, and the
@@ -49,7 +53,7 @@ process:
   transformer: "claude-sonnet-4-6"
   transformer_type: llm
   transformer_iri: https://api.anthropic.com/v1/models/claude-sonnet-4-6
-  timestamp: 2026-06-04T00:00:00Z
+  timestamp: 2026-06-14T00:00:00Z
   agent:
     name: Chloe Shannon
     iri: https://holongraph.com/people/chloe-shannon
@@ -234,6 +238,35 @@ GRAPH <http://w3id.org/holon/provenance/#vocabulary> {
       dcterms:description
           "The outcome of the confidence gate for this ingestion activity. Controlled values: auto-registered, queued-for-review, new-entity-minted."@en .
 
+  # ── DerivationActivity ────────────────────────────────────────────────────
+
+  hprov:DerivationActivity a owl:Class ;
+      rdfs:label   "Derivation Activity"@en ;
+      rdfs:comment """A prov:Activity representing the computation of a derived DataHolon from
+one or more existing DataHolons via an explicit derivation rule. Disjoint from
+hprov:IngestionActivity — use IngestionActivity when the source is an external
+signal entering the pipeline; use DerivationActivity when all sources are holons
+already in the scene graph."""@en ;
+      sh:agentInstruction
+          "A DerivationActivity traces computed artefacts back to their source DataHolons and the rule that computed them. Always check derivedFromHolon to find the upstream sources and derivationRule to identify what produced this DataHolon."@en ;
+      rdfs:subClassOf prov:Activity ;
+      owl:disjointWith hprov:IngestionActivity .
+
+  hprov:derivedFromHolon a owl:ObjectProperty ;
+      rdfs:label   "derived from holon"@en ;
+      rdfs:domain  hprov:DerivationActivity ;
+      rdfs:comment "Links a DerivationActivity to each source DataHolon from which the derived artefact was computed. MUST have at least one value."@en ;
+      sh:agentInstruction
+          "derivedFromHolon is the upstream chain. Follow these links to find the source DataHolons whose content was combined to produce the derived artefact."@en .
+
+  hprov:derivationRule a owl:DatatypeProperty ;
+      rdfs:label   "derivation rule"@en ;
+      rdfs:domain  hprov:DerivationActivity ;
+      rdfs:range   xsd:anyURI ;
+      rdfs:comment "The dereferenceable IRI of the derivation rule applied — a SPARQL CONSTRUCT query, a SHACL Rule, or a named derivation function. SHOULD be declared for reproducibility."@en ;
+      sh:agentInstruction
+          "derivationRule tells you how the derived DataHolon was computed. Dereference the IRI to find the actual SPARQL CONSTRUCT or SHACL Rule. If absent, the derivation is not reproducible from provenance alone."@en .
+
 }
 ```
 
@@ -412,6 +445,77 @@ GRAPH <http://w3id.org/holon/provenance/#shapes> {
           sh:message  "dcterms:creator SHOULD reference a named IRI."@en ;
       ] .
 
+  # ── DerivationActivityShape ─────────────────────────────────────────────────
+
+  hprov:DerivationActivityShape a sh:NodeShape ;
+      sh:targetClass   hprov:DerivationActivity ;
+      sh:name          "Derivation Activity"@en ;
+      sh:intent        "Validates that a DerivationActivity correctly records its source DataHolons, the derivation rule applied, and the transformer responsible. Ensures derived DataHolons have a complete, reproducible provenance trail."@en ;
+      sh:agentInstruction
+          "A DerivationActivity must name every source DataHolon (derivedFromHolon) and identify the transformer that ran the derivation. The derivation rule IRI is strongly recommended for reproducibility."@en ;
+
+      sh:property [
+          sh:path     rdfs:label ;
+          sh:minCount 1 ;
+          sh:severity sh:Violation ;
+          sh:message  "DerivationActivity MUST have an rdfs:label."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     hprov:derivedFromHolon ;
+          sh:minCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:severity sh:Violation ;
+          sh:message  "DerivationActivity MUST carry at least one hprov:derivedFromHolon link to a source DataHolon."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     hprov:transformerType ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:in       ( hprov:LLMTransformer
+                        hprov:XSLTTransformer
+                        hprov:SPARQLTransformer
+                        hprov:SHACLTransformer
+                        hprov:HumanTransformer
+                        hprov:CompositeTransformer ) ;
+          sh:severity sh:Violation ;
+          sh:message  "DerivationActivity MUST declare exactly one hprov:transformerType."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     hprov:transformerIRI ;
+          sh:minCount 1 ;
+          sh:maxCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:severity sh:Violation ;
+          sh:message  "DerivationActivity MUST declare exactly one hprov:transformerIRI."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     hprov:derivationRule ;
+          sh:maxCount 1 ;
+          sh:nodeKind sh:IRI ;
+          sh:severity sh:Warning ;
+          sh:message  "DerivationActivity SHOULD declare hprov:derivationRule (the SPARQL CONSTRUCT or SHACL Rule IRI) for reproducibility."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     prov:startedAtTime ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:dateTime ;
+          sh:severity sh:Violation ;
+          sh:message  "prov:startedAtTime MUST be xsd:dateTime if present."@en ;
+      ] ;
+
+      sh:property [
+          sh:path     prov:endedAtTime ;
+          sh:maxCount 1 ;
+          sh:datatype xsd:dateTime ;
+          sh:severity sh:Violation ;
+          sh:message  "prov:endedAtTime MUST be xsd:dateTime if present."@en ;
+      ] .
+
 }
 ```
 
@@ -458,6 +562,54 @@ when serialising DataBook provenance to RDF.
 <https://holongraph.com/people/chloe-shannon>
     a prov:Agent , hprov:TransformerAgent ;
     rdfs:label "Chloe Shannon"@en .
+```
+
+### 4.1 Derived DataHolon — DerivationActivity Example
+
+The following example shows provenance for a league-standing DataHolon
+computed from a set of match-result DataHolons via a SPARQL CONSTRUCT query.
+
+<!-- databook:id: derivation-activity-example -->
+<!-- mode=example norm=false -->
+```turtle
+@prefix prov:    <http://www.w3.org/ns/prov#> .
+@prefix hprov:   <http://w3id.org/holon/provenance/> .
+@prefix holon:   <http://w3id.org/holon/> .
+@prefix dcterms: <http://purl.org/dc/terms/> .
+@prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+
+# The derived DataHolon (league standing, computed from match results)
+<urn:holon:chelsea-standing-gw36>
+    a holon:DataHolon ;
+    rdfs:label               "Chelsea FC League Standing — GW36"@en ;
+    holon:registrationStatus holon:RegisteredStatus ;
+    prov:wasGeneratedBy      <urn:activity:standing-derivation-gw36> ;
+    prov:wasDerivedFrom      <urn:holon:match-che-ars-2026-06-12> ,
+                             <urn:holon:match-che-mci-2026-06-05> .
+
+# The DerivationActivity that computed it
+<urn:activity:standing-derivation-gw36>
+    a prov:Activity , hprov:DerivationActivity ;
+    rdfs:label               "Standing Derivation — Chelsea GW36"@en ;
+    prov:startedAtTime       "2026-06-12T22:00:00Z"^^xsd:dateTime ;
+    prov:endedAtTime         "2026-06-12T22:00:03Z"^^xsd:dateTime ;
+    prov:wasAssociatedWith   <https://api.anthropic.com/v1/models/claude-sonnet-4-6> ;
+    hprov:transformerType    hprov:SPARQLTransformer ;
+    hprov:transformerIRI     <urn:sparql:jena:local> ;
+    hprov:derivedFromHolon   <urn:holon:match-che-ars-2026-06-12> ;
+    hprov:derivedFromHolon   <urn:holon:match-che-mci-2026-06-05> ;
+    hprov:derivationRule     <urn:rule:compute-league-standing-v1> ;
+    hprov:pipelineStage      7 .
+
+# Source match-result DataHolons (observed, not derived)
+<urn:holon:match-che-ars-2026-06-12>
+    a holon:DataHolon ;
+    rdfs:label "Chelsea 2–1 Arsenal, 12 Jun 2026"@en .
+
+<urn:holon:match-che-mci-2026-06-05>
+    a holon:DataHolon ;
+    rdfs:label "Chelsea 1–1 Man City, 5 Jun 2026"@en .
 ```
 
 ---
