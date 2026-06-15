@@ -566,8 +566,11 @@ when serialising DataBook provenance to RDF.
 
 ### 4.1 Derived DataHolon — DerivationActivity Example
 
-The following example shows provenance for a league-standing DataHolon
-computed from a set of match-result DataHolons via a SPARQL CONSTRUCT query.
+The following example shows provenance for a monthly average temperature
+DataHolon computed from a set of daily sensor reading DataHolons via a
+SPARQL CONSTRUCT query. This illustrates the observed → derived chain: each
+daily reading is an independently ingested DataHolon; the monthly summary is
+derived from them by aggregation.
 
 <!-- databook:id: derivation-activity-example -->
 <!-- mode=example norm=false -->
@@ -578,38 +581,46 @@ computed from a set of match-result DataHolons via a SPARQL CONSTRUCT query.
 @prefix dcterms: <http://purl.org/dc/terms/> .
 @prefix xsd:     <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:    <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ex:      <https://example.org/holons/> .
 
-# The derived DataHolon (league standing, computed from match results)
-<urn:holon:chelsea-standing-gw36>
+# ── Derived DataHolon ────────────────────────────────────────────────────────
+# Monthly temperature summary computed from daily observations
+
+ex:temp-summary-2026-05
     a holon:DataHolon ;
-    rdfs:label               "Chelsea FC League Standing — GW36"@en ;
+    rdfs:label               "Station A — Monthly Temperature Summary, May 2026"@en ;
     holon:registrationStatus holon:RegisteredStatus ;
-    prov:wasGeneratedBy      <urn:activity:standing-derivation-gw36> ;
-    prov:wasDerivedFrom      <urn:holon:match-che-ars-2026-06-12> ,
-                             <urn:holon:match-che-mci-2026-06-05> .
+    prov:wasGeneratedBy      ex:activity-monthly-avg-2026-05 ;
+    prov:wasDerivedFrom      ex:temp-reading-2026-05-01 ,
+                             ex:temp-reading-2026-05-02 .
+    # (remaining daily readings omitted for brevity)
 
-# The DerivationActivity that computed it
-<urn:activity:standing-derivation-gw36>
+# ── DerivationActivity ───────────────────────────────────────────────────────
+
+ex:activity-monthly-avg-2026-05
     a prov:Activity , hprov:DerivationActivity ;
-    rdfs:label               "Standing Derivation — Chelsea GW36"@en ;
-    prov:startedAtTime       "2026-06-12T22:00:00Z"^^xsd:dateTime ;
-    prov:endedAtTime         "2026-06-12T22:00:03Z"^^xsd:dateTime ;
-    prov:wasAssociatedWith   <https://api.anthropic.com/v1/models/claude-sonnet-4-6> ;
+    rdfs:label               "Monthly Average Derivation — Station A, May 2026"@en ;
+    prov:startedAtTime       "2026-06-01T00:00:00Z"^^xsd:dateTime ;
+    prov:endedAtTime         "2026-06-01T00:00:02Z"^^xsd:dateTime ;
+    prov:wasAssociatedWith   <urn:engine:sparql-processor-v3> ;
     hprov:transformerType    hprov:SPARQLTransformer ;
-    hprov:transformerIRI     <urn:sparql:jena:local> ;
-    hprov:derivedFromHolon   <urn:holon:match-che-ars-2026-06-12> ;
-    hprov:derivedFromHolon   <urn:holon:match-che-mci-2026-06-05> ;
-    hprov:derivationRule     <urn:rule:compute-league-standing-v1> ;
+    hprov:transformerIRI     <urn:engine:sparql-processor-v3> ;
+    hprov:derivedFromHolon   ex:temp-reading-2026-05-01 ;
+    hprov:derivedFromHolon   ex:temp-reading-2026-05-02 ;
+    hprov:derivationRule     <urn:rule:monthly-temperature-average-v1> ;
     hprov:pipelineStage      7 .
 
-# Source match-result DataHolons (observed, not derived)
-<urn:holon:match-che-ars-2026-06-12>
-    a holon:DataHolon ;
-    rdfs:label "Chelsea 2–1 Arsenal, 12 Jun 2026"@en .
+# ── Source DataHolons (observed via IngestionActivity, not shown) ────────────
 
-<urn:holon:match-che-mci-2026-06-05>
+ex:temp-reading-2026-05-01
     a holon:DataHolon ;
-    rdfs:label "Chelsea 1–1 Man City, 5 Jun 2026"@en .
+    rdfs:label "Station A — Daily Temperature Reading, 1 May 2026"@en ;
+    holon:registrationStatus holon:RegisteredStatus .
+
+ex:temp-reading-2026-05-02
+    a holon:DataHolon ;
+    rdfs:label "Station A — Daily Temperature Reading, 2 May 2026"@en ;
+    holon:registrationStatus holon:RegisteredStatus .
 ```
 
 ---
