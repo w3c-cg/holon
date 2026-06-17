@@ -105,7 +105,19 @@ export async function runPush(filePath, opts) {
 
   const fm = db.frontmatter;
 
-  // ── Resolve endpoints ─────────────────────────────────────────────────────────
+  // ── Filename stem validation (v1.5.0) ─────────────────────────────────────
+  // Warn when the source filename stem doesn't match the path terminal segment.
+  if (fm.path && filePath) {
+    const { basename } = await import('path');
+    const terminalSegment = fm.path.split('/').pop();
+    const fileStem = basename(filePath).replace(/\.databook\.md$/i, '').replace(/\.md$/i, '');
+    if (fileStem !== terminalSegment) {
+      process.stderr.write(
+        `warn: filename stem '${fileStem}' does not match path terminal '${terminalSegment}'\n` +
+        `  Consider renaming the file to '${terminalSegment}.databook.md'\n`
+      );
+    }
+  }
   const datasetCfg     = opts.dataset ? datasetToEndpoints(opts.dataset) : null;
   const sparqlEndpoint = endpointOpt ?? serverCfg?.endpoint ?? datasetCfg?.endpoint ?? getDefaultEndpoint() ?? LOCALHOST_FUSEKI.endpoint;
 
