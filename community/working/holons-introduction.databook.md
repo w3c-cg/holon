@@ -2,9 +2,9 @@
 title: "Holons: An Introduction"
 type: databook
 format: markdown
-version: 1.1
+version: 1.2
 created: 2026-06-17
-revised: 2026-06-17
+revised: 2026-06-18
 audience: informed technical generalist
 status: open
 tags: [holons, systems-thinking, knowledge-graphs, databooks, AI, RDF, SHACL, community-group]
@@ -197,6 +197,30 @@ A **camera** is a designated observation point within the scene — a defined pe
 - **Agent POV** — the scene as experienced by a specific agent
 
 There will usually be multiple cameras, and thus multiple concurrent projections, for any holon.
+
+### Understanding Cameras
+
+The camera metaphor is deliberate and precise. In a stage production, a camera does not create the scene — it observes it. It has a position, an angle, and a field of view. It can be static or tracking. Multiple cameras can cover the same scene simultaneously, each producing a different output without disturbing what the actors are doing.
+
+In a holon, a camera is a named, declared observation point — a formally specified perspective that selects a slice of the scene graph and presents it to an observer. Technically, a camera corresponds to a SPARQL CONSTRUCT or SELECT query bound to a named projection IRI. But the richer way to think of it is as a **first-class entity within the scene** — something that has an identity, a location relative to agents and props, and a defined field of view.
+
+This matters for three reasons:
+
+**Cameras are scoped, not global.** A camera does not see everything in the scene — it sees what its position and angle allow. An HR holon's camera on an employee shows benefits and role history. An R&D holon's camera on the same employee shows project contributions and skill assessments. Same agent, same underlying data, different projections. Neither camera is more correct than the other; they are addressing different concerns.
+
+**Cameras are persistent, not one-shot.** A camera defined within a holon continues to observe as the event graph evolves. When an agent changes state — a new event is logged — cameras pointing at that agent update their view accordingly. This makes cameras the mechanism by which a holon presents a **live, current view** to the outside world, rather than a static snapshot.
+
+**Cameras are composable.** A camera in a containing holon can aggregate the projections of cameras in its contained holons. A company-level camera might compose the outputs of department-level cameras into a single organisational view. This mirrors how holarchies work: each level provides its own perspective, and those perspectives can be stacked.
+
+The set of cameras defined for a holon constitutes its **projection layer** — the sum of the ways it can be observed from outside. Defining the right cameras is an ontological act: it requires understanding what questions observers will ask, what aspects of the scene are relevant to each, and what should remain opaque.
+
+### Cameras and Portals: Two Kinds of Boundary
+
+Cameras bear the same relationship to projections that portals bear to holons. A **portal** connects one holon to another, allowing agent evolution in the source holon to inform the destination — without exposing the source's internal structure. A **camera** connects a holon to its observers, allowing agent state changes to be projected outward in curated form — without exposing the scene graph directly.
+
+Both are mediation boundaries. Neither carries internal state directly — both carry the *effects* of evolution: what changed, from whose perspective, and to what degree of resolution the receiving side is entitled to see.
+
+In a federated holon network, portals carry events between holons, and cameras determine what those events look like to the receiving side. A destination holon does not see the source's scene — it sees what the source's cameras are pointing at, delivered through the portal. This separation of concerns is what makes holon architectures composable at scale: each holon controls its own projection, and federation is a matter of connecting projections rather than merging graphs.
 
 ---
 
