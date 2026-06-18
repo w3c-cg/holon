@@ -481,7 +481,7 @@
   </section>
 
   <!-- SLIDE 13: AGENTS & TRAJECTORIES -->
-  <section data-label="13" data-screen-label="13 — Agents &amp; Trajectories" data-speaker-notes="Within a holon's graph, the items that change are called agents. An agent is an observable — something you can watch and measure within the holon. Each time an agent changes state, that is an event. The complete sequence of events for a given agent is its trajectory within the holon — the path it traces through state space over time.">
+  <section data-label="13" data-screen-label="13 — Agents &amp; Trajectories" data-speaker-notes="Within a holon's graph, the items that change are called agents. An agent is an observable — something you can watch and measure within the holon. Each time an agent changes state, that is an event. The complete sequence of events for a given agent is its trajectory within the holon — the path it traces through state space over time. A note on terminology: in current AI usage, 'agent' implies autonomy and goal-directedness — an LLM with tool access, a planning system. In holon usage, 'agent' means any entity with a trackable identity and state — which includes people, organisations, documents, and devices, not only autonomous systems. Where the two coincide — an AI system operating as a tracked entity within a holon — the holon architecture provides exactly what the AI agent needs: a scene to act in, an event log of its actions, a boundary constraining what it may do, and cameras projecting its behaviour to observers.">
     <div style="background: var(--bg); width: 100%; height: 100%; display: flex; align-items: center; padding: var(--pad-y) var(--pad-x); box-sizing: border-box; gap: 80px;">
       <div style="flex: 0 0 540px; display: flex; flex-direction: column; gap: var(--gap-md);">
         <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold);">Dynamics</span>
@@ -812,13 +812,14 @@
   </section>
 
   <!-- SLIDE 20: THE PROJECTION LAYER -->
-  <section data-label="20" data-screen-label="20 — The Projection Layer" data-speaker-notes="The Projection Layer is how the holon is seen from outside. It may be a view from the audience, a map of characters from above, the perspective of the scene from a given agent, and so on. Projections are frequently mediated by cameras within the scene — a camera being any means of performing observations. There will usually be multiple projections for any given holon.">
+  <section data-label="20" data-screen-label="20 — The Projection Layer" data-speaker-notes="The Projection Layer is how the holon is seen from outside — mediated by cameras within the scene. A camera is a named, declared observation point: technically a SPARQL CONSTRUCT or SELECT query bound to a named projection IRI, but more richly understood as a first-class entity with a position, angle, and field of view. Cameras are scoped — each sees only part of the scene. They are persistent — updating as the event graph evolves, not one-shot snapshots. And they are composable — a containing holon can aggregate the projections of its contained holons. Cameras bear the same relationship to projections that portals bear to holons: both are mediation boundaries that carry the effects of evolution without exposing internal state directly. In a federated holon network, portals carry events between holons, and cameras determine what those events look like to the receiving side.">
     <div style="background: var(--bg); width: 100%; height: 100%; display: flex; align-items: center; padding: var(--pad-y) var(--pad-x); box-sizing: border-box; gap: 80px;">
       <div style="flex: 0 0 540px; display: flex; flex-direction: column; gap: var(--gap-md);">
         <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold);">Aspect 4</span>
         <h2 style="font-family: 'Cormorant Garamond', serif; font-size: var(--type-title); font-weight: 300; color: var(--fg); margin: 0; line-height: 1.1;">The Projection Layer</h2>
         <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-body); color: var(--fg); margin: 0; line-height: 1.6; opacity: 0.85; text-wrap: pretty;">How the holon is seen from <span style="color: var(--gold);">outside</span> — mediated by cameras within the scene.</p>
         <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg-dim); margin: 0; line-height: 1.7; text-wrap: pretty;">A <span style="color: var(--gold);">camera</span> is a designated observation point within the scene — a defined perspective or query that selects and filters what is visible from a given vantage. There will usually be <span style="color: var(--gold);">multiple projections</span> for any holon, each mediated by a different camera — each giving a different view of the same system.</p>
+        <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg-dim); margin: 0; line-height: 1.7; text-wrap: pretty;">Cameras bear the same relationship to projections that <span style="color: var(--gold);">portals</span> bear to holons — both are mediation boundaries that carry the effects of evolution without exposing internal state directly.</p>
       </div>
       <div style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px;">
         <div style="display: flex; gap: 24px; align-items: flex-start; width: 100%;">
@@ -1203,7 +1204,7 @@
         </div>
         <div style="background: oklch(16% 0.05 72); border-radius: 8px; padding: 32px 40px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--gold);">
           <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); color: var(--gold); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;">IP Rights</span>
-          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg); margin: 0; line-height: 1.6; text-wrap: pretty;">IP rights policies are yet to be decided, though likely will align with W3C policies with regard to licensing.</p>
+          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg); margin: 0; line-height: 1.6; text-wrap: pretty;">IP rights policies are awaiting CG consensus, though likely will align with W3C policies with regard to licensing.</p>
         </div>
       </div>
     </div>
@@ -1257,8 +1258,34 @@
     </div>
   </section>
 
-  <!-- SLIDE 31: THANK YOU -->
-  <section data-label="31" data-screen-label="31 — Thank You" data-speaker-notes="Thank you for your involvement. Questions and discussion welcome.">
+  <!-- SLIDE 31: MEETING CADENCE -->
+  <section data-label="31" data-screen-label="31 — Meeting Cadence" data-speaker-notes="The HCG meets twice monthly on alternating Fridays, 7–9 AM Pacific / 3–5 PM GMT / 4–6 PM CET. A third session will be added at a time accessible to Eastern Europe and Asia-Pacific participants once membership distribution is established. Agendas are published to GitHub at least 48 hours in advance; minutes within one week. Working groups set their own cadences and report back to the full group at each plenary.">
+    <div style="background: var(--bg-warm); width: 100%; height: 100%; display: flex; align-items: center; padding: var(--pad-y) var(--pad-x); box-sizing: border-box; gap: 80px;">
+      <div style="flex: 0 0 460px; display: flex; flex-direction: column; gap: var(--gap-md);">
+        <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold);">Rhythm</span>
+        <h2 style="font-family: 'Cormorant Garamond', serif; font-size: var(--type-title); font-weight: 300; color: var(--fg); margin: 0; line-height: 1.1;">Meeting cadence</h2>
+        <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg-dim); margin: 0; line-height: 1.7; text-wrap: pretty; font-style: italic;">Often enough to make progress. Not so often that it becomes a burden.</p>
+      </div>
+      <div style="flex: 1; display: flex; flex-direction: column; gap: 24px; justify-content: center;">
+        <div style="background: oklch(16% 0.06 72); border-radius: 8px; padding: 32px 40px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--gold);">
+          <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); color: var(--gold); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;">Primary Sessions</span>
+          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg); margin: 0; line-height: 1.6; text-wrap: pretty;">Twice monthly · Alternating Fridays · 7:00–9:00 AM Pacific</p>
+          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg-dim); margin: 0; line-height: 1.6;">15:00–17:00 GMT &nbsp;·&nbsp; 16:00–18:00 CET</p>
+        </div>
+        <div style="background: oklch(16% 0.06 72); border-radius: 8px; padding: 32px 40px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--gold);">
+          <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); color: var(--gold); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;">Third Session</span>
+          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg); margin: 0; line-height: 1.6; text-wrap: pretty;">A third monthly session will be added at a time accessible to Eastern Europe, the Middle East, and Asia-Pacific participants — timing to be agreed once membership distribution is established.</p>
+        </div>
+        <div style="background: oklch(16% 0.06 72); border-radius: 8px; padding: 32px 40px; display: flex; flex-direction: column; gap: 12px; border-left: 3px solid var(--gold);">
+          <span style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-label); color: var(--gold); font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em;">Process</span>
+          <p style="font-family: 'IBM Plex Sans', sans-serif; font-size: var(--type-small); color: var(--fg); margin: 0; line-height: 1.6; text-wrap: pretty;">Agendas published to GitHub ≥ 48 hours in advance · Minutes published within one week · Working groups set their own cadence and report at each plenary.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLIDE 32: THANK YOU -->
+  <section data-label="32" data-screen-label="32 — Thank You" data-speaker-notes="Thank you for your involvement. Questions and discussion welcome.">
     <div style="background: var(--bg-warm); width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 36px; padding: 0 var(--pad-x); box-sizing: border-box;">
       <div style="width: 60px; height: 1px; background: var(--gold); opacity: 0.5;"></div>
       <h2 style="font-family: 'Cormorant Garamond', serif; font-size: 96px; font-weight: 300; color: var(--fg); margin: 0; text-align: center; line-height: 1.05; letter-spacing: -1px;">Thank you for<br>your involvement.</h2>
