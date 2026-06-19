@@ -176,49 +176,71 @@ export function parseBlocks(bodyLines, frontmatter = null) {
     if (inp.block_id) roleMap[inp.block_id] = inp.role ?? null;
   }
 
-  const blocks = [];
-  let i = 0;
-
-  while (i < bodyLines.length) {
-    const fenceMatch = RE_FENCE_OPEN.exec(bodyLines[i]);
-    if (!fenceMatch) { i++; continue; }
-
-    const label = fenceMatch[1];
-    i++;
-
-    const contentLines = [];
-    const allMeta = {};
-    let commentCount = 0;
+    const blocks = [];
+    let i = 0;
+    let prefenceMeta = {};
+    let prefenceCount = 0;
 
     while (i < bodyLines.length) {
       const line = bodyLines[i];
-      if (RE_FENCE_CLOSE.test(line)) { i++; break; }
+      const fenceMatch = RE_FENCE_OPEN.exec(line);
 
-      const metaMatch = RE_META_COMMENT.exec(line);
-      if (metaMatch) {
-        allMeta[metaMatch[1]] = metaMatch[2].trim();
-        commentCount++;
+      if (!fenceMatch) {
+        // Accumulate consecutive pre-fence annotation comments; any non-comment
+        // non-fence line resets the buffer (blank line breaks association).
+        const metaMatch = RE_META_COMMENT.exec(line);
+        if (metaMatch) {
+          prefenceMeta[metaMatch[1]] = metaMatch[2].trim();
+          prefenceCount++;
+        } else {
+          prefenceMeta = {};
+          prefenceCount = 0;
+        }
+        i++;
+        continue;
       }
-      contentLines.push(line);
+
+      const label = fenceMatch[1];
       i++;
+
+      // Seed allMeta from pre-fence zone; in-fence comments override.
+      const allMeta = { ...prefenceMeta };
+      let commentCount = prefenceCount;
+      prefenceMeta = {};
+      prefenceCount = 0;
+
+      const contentLines = [];
+
+      while (i < bodyLines.length) {
+        const curLine = bodyLines[i];
+        if (RE_FENCE_CLOSE.test(curLine)) { i++; break; }
+
+        const metaMatch = RE_META_COMMENT.exec(curLine);
+        if (metaMatch) {
+          allMeta[metaMatch[1]] = metaMatch[2].trim();
+          commentCount++;
+        }
+        contentLines.push(curLine);
+        i++;
+      }
+
+      const blockId = allMeta['id'] ?? null;
+      const displayOnly = allMeta['display-only'] === 'true' || DISPLAY_ONLY_LABELS.has(label);
+      const lineCount = contentLines.filter(l => !RE_META_COMMENT.test(l)).length;
+
+      blocks.push({
+        id:            blockId,
+        label,
+        role:          blockId ? (roleMap[blockId] ?? null) : null,
+        content:       contentLines.join('\n'),
+        contentLines,
+        line_count:    lineCount,
+        comment_count: commentCount,
+        display_only:  displayOnly,
+        all_meta:      allMeta,
+      });
     }
 
-    const blockId = allMeta['id'] ?? null;
-    const displayOnly = allMeta['display-only'] === 'true' || DISPLAY_ONLY_LABELS.has(label);
-    const lineCount = contentLines.filter(l => !RE_META_COMMENT.test(l)).length;
-
-    blocks.push({
-      id:           blockId,
-      label,
-      role:         blockId ? (roleMap[blockId] ?? null) : null,
-      content:      contentLines.join('\n'),
-      contentLines,
-      line_count:   lineCount,
-      comment_count: commentCount,
-      display_only: displayOnly,
-      all_meta:     allMeta,
-    });
-  }
 
   return blocks;
 }
