@@ -180,21 +180,32 @@ export function parseBlocks(bodyLines, frontmatter = null) {
     let i = 0;
     let prefenceMeta = {};
     let prefenceCount = 0;
+    let prefenceBlankRun = 0;
 
     while (i < bodyLines.length) {
       const line = bodyLines[i];
       const fenceMatch = RE_FENCE_OPEN.exec(line);
 
       if (!fenceMatch) {
-        // Accumulate consecutive pre-fence annotation comments; any non-comment
-        // non-fence line resets the buffer (blank line breaks association).
+        // Accumulate consecutive pre-fence annotation comments. A single
+        // blank line between the annotations and the fence is tolerated —
+        // there's no ambiguity here, since nothing else could plausibly own
+        // an annotation immediately preceding a fence, so this closes a
+        // common formatting trap (annotations silently orphaned by a stray
+        // blank line, making the block anonymous — see commands/push.js for
+        // why anonymous blocks are unsafe under PUT). Any other non-comment
+        // line, or a second consecutive blank line, still resets the buffer.
         const metaMatch = RE_META_COMMENT.exec(line);
         if (metaMatch) {
           prefenceMeta[metaMatch[1]] = metaMatch[2].trim();
           prefenceCount++;
+          prefenceBlankRun = 0;
+        } else if (line.trim() === '' && prefenceCount > 0 && prefenceBlankRun === 0) {
+          prefenceBlankRun++;
         } else {
           prefenceMeta = {};
           prefenceCount = 0;
+          prefenceBlankRun = 0;
         }
         i++;
         continue;
@@ -208,6 +219,7 @@ export function parseBlocks(bodyLines, frontmatter = null) {
       let commentCount = prefenceCount;
       prefenceMeta = {};
       prefenceCount = 0;
+      prefenceBlankRun = 0;
 
       const contentLines = [];
 
