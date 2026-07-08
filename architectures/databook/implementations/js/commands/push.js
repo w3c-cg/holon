@@ -1,6 +1,12 @@
 /**
  * databook push — transfer RDF blocks from a DataBook to a SPARQL triplestore via GSP.
  * Spec: https://w3id.org/databook/specs/cli-push
+ *
+ * Guard added: refuses to push (rather than silently overwrite) when two or
+ * more pushable blocks resolve to the same graph IRI under PUT semantics —
+ * most commonly hit when multiple blocks with no <!-- databook:id: ... -->
+ * share a fence label and fall back to `${docId}#${label}`. --merge (POST)
+ * or a unique id per block opts out.
  */
 
 import { loadDataBookFile, PUSHABLE_LABELS, blockPayload } from '../lib/parser.js';
@@ -143,9 +149,39 @@ export async function runPush(filePath, opts) {
     }
   }
 
+  const databookId = fm.id;
+
+  // ── Guard: destructive graph-IRI collisions ─────────────────────────────────
+  // PUT replaces the graph on every write. resolveGraphIri() below falls back
+  // to `${docId}#${block.id ?? block.label}` when a block has no id, so two or
+  // more anonymous blocks sharing the same fence label (e.g. two `turtle`
+  // blocks) resolve to the identical graph IRI and silently clobber each other.
+  // Refuse by default; --merge (POST, additive) opts out.
+  if (!merge) {
+    const resolvedGroups = new Map();
+    for (const b of pushableBlocks) {
+      const graphIri = resolveGraphIri(b, graphOpt, fm, databookId, db.filePath, pushableBlocks.length);
+      if (!resolvedGroups.has(graphIri)) resolvedGroups.set(graphIri, []);
+      resolvedGroups.get(graphIri).push(b);
+    }
+    for (const [graphIri, blocksInGroup] of resolvedGroups) {
+      if (blocksInGroup.length > 1) {
+        const ids = blocksInGroup.map(b => b.id ?? `(unnamed ${b.label})`).join(', ');
+        die(
+          `${blocksInGroup.length} pushable blocks resolve to the same graph ${graphIri} ` +
+          `(${ids}). This push uses PUT, which replaces the graph on each write — later ` +
+          `blocks would silently overwrite earlier ones.\n` +
+          `  Fix by giving each block a unique <!-- databook:id: ... --> annotation, or ` +
+          `pass --merge to use POST instead, or push the blocks individually with ` +
+          `--block-id and --graph.`,
+          2,
+        );
+      }
+    }
+  }
+
   // ── Execute pushes ─────────────────────────────────────────────────────────
   let pushed = 0, failed = 0;
-  const databookId = fm.id;
 
   for (const block of pushableBlocks) {
     const graphIri = resolveGraphIri(block, graphOpt, fm, databookId, db.filePath, pushableBlocks.length);
